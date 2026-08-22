@@ -4,6 +4,7 @@
 
 ## 在线内容
 
+- [打开即创设计 AI 交互 Demo](https://jichuang-design-ai.majorwmc.chatgpt.site)
 - [项目上下文](./PROJECT_CONTEXT.md)
 - [会话与决策记录](./CONVERSATION_HISTORY.md)
 - [Codex 协作约定](./AGENTS.md)
@@ -26,6 +27,6 @@
 
 ## 跨电脑继续
 
-在任何电脑登录同一个 Codex 账号后，打开或克隆本仓库。新会话先读取 `AGENTS.md`、`PROJECT_CONTEXT.md` 和 `CONVERSATION_HISTORY.md`，即可延续当前设计工作。
+在任何电脑登录同一个 Codex 账号后，打开本仓库。新会话先读取 `AGENTS.md`、`PROJECT_CONTEXT.md` 和 `CONVERSATION_HISTORY.md`，即可延续当前设计工作。
 
-后续 Demo 会以轻量、可在线访问为优先，不再要求迁移本机所有历史素材。
+后续 Demo 以轻量、在线访问为优先，不要求迁移本机所有历史素材。
