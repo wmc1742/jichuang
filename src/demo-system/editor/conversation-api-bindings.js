@@ -14,16 +14,17 @@ const bindings = {
     sample: { type: 'message.accepted', message_id: 'msg_01', role: 'user' },
   },
   AssistantText: {
-    controller: 'runAgentStage() → outputIds',
+    controller: 'revealRunOutputs() → streamAssistantNode()',
     transport: 'SSE',
     endpoint: streamEndpoint,
-    event: 'message.created',
-    trigger: 'Agent 完成一个可展示的文本输出',
+    event: 'message.created / message.delta / message.completed',
+    trigger: 'Agent 产生可展示的文本回复；同一个 AssistantMessage 持续接收增量内容',
     fields: [
       ['text', 'event.message.content[]', '文本块合并或按段落展示'],
       ['role', 'event.message.role', '映射为 assistant'],
+      ['phase', 'event.type', 'streaming / completed，完成前显示流式光标'],
     ],
-    sample: { type: 'message.created', message: { role: 'assistant', content: ['...'] } },
+    sample: { type: 'message.delta', message_id: 'msg_02', delta: '为了生成更符合要求的视频' },
   },
   FollowUpMessage: {
     controller: 'runAgentStage() → interaction.required',

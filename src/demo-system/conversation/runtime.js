@@ -1,8 +1,11 @@
-import { ConversationKind, ConversationPhase, normalizeConversationNode, normalizeConversationNodes } from './model.js';
+import { ConversationKind, ConversationPhase, normalizeConversationNode, normalizeConversationNodes } from './model.js?v=20260904j';
 
 export const ConversationEvent = Object.freeze({
   APPEND: 'conversation.node.appended',
   UPDATE: 'conversation.node.updated',
+  ASSISTANT_STREAM_STARTED: 'assistant.message.stream.started',
+  ASSISTANT_STREAM_DELTA: 'assistant.message.stream.delta',
+  ASSISTANT_STREAM_COMPLETED: 'assistant.message.stream.completed',
   RUN_STARTED: 'run.started',
   TOOL_STARTED: 'tool.started',
   RUN_TIMER_TICK: 'run.timer.tick',
@@ -36,6 +39,35 @@ export function applyConversationEvent(currentMessages = [], event) {
   const messages = normalizeConversationNodes(currentMessages);
   if (event.type === ConversationEvent.APPEND) return upsert(messages, event.node);
   if (event.type === ConversationEvent.UPDATE) return update(messages, event.id, event.patch);
+
+  if (event.type === ConversationEvent.ASSISTANT_STREAM_STARTED) {
+    return upsert(messages, {
+      ...event.node,
+      id: event.id || event.node.id,
+      role: 'assistant',
+      kind: ConversationKind.ASSISTANT,
+      phase: ConversationPhase.STREAMING,
+      text: event.text || '',
+    });
+  }
+
+  if (event.type === ConversationEvent.ASSISTANT_STREAM_DELTA) {
+    const current = messages.find((message) => message.id === event.id);
+    const nextText = event.text !== undefined
+      ? event.text
+      : `${current?.text || ''}${event.delta || ''}`;
+    return update(messages, event.id, {
+      phase: ConversationPhase.STREAMING,
+      text: nextText,
+    });
+  }
+
+  if (event.type === ConversationEvent.ASSISTANT_STREAM_COMPLETED) {
+    return update(messages, event.id, {
+      phase: ConversationPhase.COMPLETED,
+      text: event.text,
+    });
+  }
 
   if (event.type === ConversationEvent.RUN_STARTED) {
     return upsert(messages, {

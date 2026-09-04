@@ -23,7 +23,8 @@ function UserMessage(message, presentation) {
 
 function AssistantText(message, presentation) {
   const paragraphs = Array.isArray(message.text) ? message.text : [message.text];
-  return `<article class="message message--assistant${editorClass(message)}" ${editorAttributes(message, presentation)}>${paragraphs.map((line) => `<p>${escapeHtml(line)}</p>`).join('')}</article>`;
+  const streaming = message.phase === 'streaming';
+  return `<article class="message message--assistant${streaming ? ' is-streaming' : ''}${editorClass(message)}" ${editorAttributes(message, presentation)}>${paragraphs.map((line, index) => `<p><span${streaming && index === paragraphs.length - 1 ? ' data-role="assistant-stream"' : ''}>${escapeHtml(line)}</span>${streaming && index === paragraphs.length - 1 ? '<i class="assistant-stream-cursor" aria-hidden="true"></i>' : ''}</p>`).join('')}</article>`;
 }
 
 function FollowUpMessage(message, presentation) {

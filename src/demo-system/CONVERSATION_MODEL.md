@@ -41,6 +41,8 @@ id + kind + variant + phase + placement + payload
 
 `AnsweredQuestionMessage`、`StatusMessage` 和 `RunCompleteMessage` 是渲染状态，不是新的业务消息类型。其中已回答的 `QuestionMessage` 必须继续由 `AnsweredQuestionMessage` 渲染，不能降级成独立回执 `StatusMessage`。
 
+AI 正文统一使用 16px，并通过稳定的 `AssistantMessage` 实例流式更新：`message.created` 创建空消息，`message.delta` 持续追加可见文本，`message.completed` 结束光标并进入完成态。追问、表单、产物和媒体不是文本流，必须等前一条正文输出完成后再按事件顺序出现。
+
 演示运行中，`RunMessage` 同时保留两组时间：`simulation.durationSeconds` 控制真实等待与逐秒计时，`elapsed` 保留任务完成后的业务耗时文案。计时事件只更新时间，不能改变 Run 状态。有执行阶段的 Run 由 Mock 事件表在 `simulation.toolStartSecond` 发出 `tool.started`，同一个 Run 才从思考切换到执行；没有 Skill/Tool 调用的 Run 不会出现执行态。
 
 ## 状态规则

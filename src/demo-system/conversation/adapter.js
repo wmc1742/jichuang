@@ -43,7 +43,36 @@ function interactionNode(event) {
 }
 
 export function toConversationRuntimeEvent(event) {
+  if (event.type === 'message.delta') {
+    return {
+      type: ConversationEvent.ASSISTANT_STREAM_DELTA,
+      id: event.message_id,
+      delta: event.content?.text || event.delta || '',
+    };
+  }
+
+  if (event.type === 'message.completed') {
+    return {
+      type: ConversationEvent.ASSISTANT_STREAM_COMPLETED,
+      id: event.message_id,
+      text: event.content?.text || event.content || '',
+    };
+  }
+
   if (event.type === 'message.accepted' || event.type === 'message.created') {
+    if (event.type === 'message.created' && (event.role || event.message?.role) === 'assistant') {
+      return {
+        type: ConversationEvent.ASSISTANT_STREAM_STARTED,
+        id: event.message_id || event.message?.id,
+        node: {
+          id: event.message_id || event.message?.id,
+          role: 'assistant',
+          kind: 'assistant-message',
+          variant: 'text',
+        },
+        text: event.content?.text || event.message?.content || '',
+      };
+    }
     return append({
       id: event.message_id || event.message?.id,
       role: event.role || event.message?.role,

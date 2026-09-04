@@ -1,4 +1,4 @@
-@import url('./foundations/tokens.css');
+@import url('./foundations/tokens.css?v=20260904j');
 
 * { box-sizing: border-box; }
 
@@ -392,6 +392,8 @@ img { display: block; }
 .user-bubble .product-attachment { vertical-align: middle; margin: 0 4px; }
 .message--assistant { color: #fff; font-size: var(--message-font-size); line-height: 28px; }
 .message--assistant p { margin: 0; }
+.assistant-stream-cursor { display: inline-block; width: 2px; height: 17px; margin-left: 3px; transform: translateY(2px); border-radius: 1px; background: #d4b7ff; animation: assistant-stream-blink 800ms steps(1, end) infinite; }
+@keyframes assistant-stream-blink { 0%, 48% { opacity: 1; } 49%, 100% { opacity: .18; } }
 .message--follow-up { display: flex; flex-direction: column; gap: 8px; }
 .message--follow-up ol { display: flex; flex-direction: column; gap: 4px; margin: 0; padding-left: 22px; color: var(--agent-lavender-65); }
 .message--follow-up li { padding-left: 2px; }
@@ -445,6 +447,7 @@ img { display: block; }
   .execution-summary__live,
   .progress-copy__dots i { animation: none; }
   .progress-copy__dots i { opacity: .7; }
+  .assistant-stream-cursor { animation: none; }
 }
 .progress-thought { width: 100%; margin: 0; color: rgba(255,255,255,.5); font-size: 16px; line-height: 28px; font-weight: 600; }
 .message--thinking-complete { display: flex; flex-direction: column; align-items: flex-start; align-self: flex-start; color: #fff; }

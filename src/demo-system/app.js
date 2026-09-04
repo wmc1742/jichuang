@@ -8,14 +8,14 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904h';
-import { media } from './data/assets.js?v=20260904h';
-import { HomeTemplate } from './templates/home.js?v=20260904h';
-import { StudioTemplate } from './templates/studio.js?v=20260904h';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904h';
-import { normalizeConversationNodes } from './conversation/model.js';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260904h';
-import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260904h';
+} from './scenarios/luosifen.js?v=20260904j';
+import { media } from './data/assets.js?v=20260904j';
+import { HomeTemplate } from './templates/home.js?v=20260904j';
+import { StudioTemplate } from './templates/studio.js?v=20260904j';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904j';
+import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260904j';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260904j';
+import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260904j';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -91,7 +91,7 @@ const studioDefaults = {
   composerLineHeight: 28,
   messageType: 'all',
   messageGap: 12,
-  messageFontSize: 14,
+  messageFontSize: 16,
   statusHistoryExpanded: false,
   userBubbleRadius: 20,
   userBubblePadding: 16,
@@ -121,6 +121,7 @@ const studioDefaults = {
 function loadStudioSettings() {
   try {
     const saved = JSON.parse(window.localStorage.getItem(STUDIO_STORAGE_KEY) || '{}');
+    if (saved.messageFontSize === 14) saved.messageFontSize = 16;
     if (saved.selectionOptions) {
       saved.selectionOptions = saved.selectionOptions.split(',').map((item) => item.trim()).filter((item) => item && item !== '以上全部').join(',');
     }
@@ -296,18 +297,98 @@ function startScenario() {
   const request = state.draft.trim() || '根据 即创螺蛳粉 这个商品为我生成用于大促推广的视频';
   const firstMessage = { ...scenarioMessages[0], text: request.includes('即创螺蛳粉') ? scenarioMessages[0].text : request, attachment: state.attachment || project.product };
   const configuredFirstMessage = applyConversationConfig([firstMessage], state.editor.config)[0] || firstMessage;
+  const welcome = applyConversationConfig([getScenarioMessage('welcome')], state.editor.config)[0];
   Object.assign(state, {
     page: 'workspace',
     taskMode: 'existing',
     projectTitle: '即创螺蛳粉',
-    messages: [configuredFirstMessage, getScenarioMessage('welcome')],
+    messages: [configuredFirstMessage],
     artifacts: structuredClone(scenarioArtifacts),
     scenarioStage: 1,
     draft: '',
     attachment: null,
+    busy: true,
   });
   render({ keepScroll: false, scrollToEnd: true });
-  runAgentStage(1);
+  if (welcome) streamAssistantNode(welcome, activeRunToken, () => runAgentStage(1));
+  else runAgentStage(1);
+}
+
+function updateStreamingText(messageId, text) {
+  const target = document.querySelector(`[data-editor-id="${messageId}"] [data-role="assistant-stream"]`);
+  if (target) target.textContent = text;
+  const scroll = document.querySelector('[data-role="conversation-scroll"]');
+  if (scroll) scroll.scrollTop = scroll.scrollHeight;
+}
+
+function streamAssistantNode(node, runToken, onComplete) {
+  const finalText = Array.isArray(node.text) ? node.text.join('\n') : `${node.text || ''}`;
+  const characters = Array.from(finalText);
+  let cursor = 0;
+  let visibleText = '';
+  state.messages = applyConversationEvent(state.messages, {
+    type: ConversationEvent.ASSISTANT_STREAM_STARTED,
+    id: node.id,
+    node,
+    text: '',
+  });
+  render({ scrollToEnd: true });
+
+  const writeNext = () => {
+    if (runToken !== activeRunToken) return;
+    if (cursor >= characters.length) {
+      state.messages = applyConversationEvent(state.messages, {
+        type: ConversationEvent.ASSISTANT_STREAM_COMPLETED,
+        id: node.id,
+        text: node.text,
+      });
+      render({ scrollToEnd: true });
+      activeRunOutputTimer = window.setTimeout(() => {
+        activeRunOutputTimer = null;
+        onComplete();
+      }, 160);
+      return;
+    }
+
+    const character = characters[cursor];
+    visibleText += character;
+    cursor += 1;
+    state.messages = applyConversationEvent(state.messages, {
+      type: ConversationEvent.ASSISTANT_STREAM_DELTA,
+      id: node.id,
+      text: visibleText,
+    });
+    updateStreamingText(node.id, visibleText);
+    const delay = /[，。！？；：,.!?]/u.test(character) ? 160 : 55;
+    activeRunOutputTimer = window.setTimeout(writeNext, delay);
+  };
+
+  activeRunOutputTimer = window.setTimeout(writeNext, 120);
+}
+
+function revealRunOutputs(run, runId, runToken) {
+  const outputs = applyConversationConfig(run.outputIds.map(getScenarioMessage).filter(Boolean), state.editor.config);
+  const revealAt = (index) => {
+    if (runToken !== activeRunToken) return;
+    if (index >= outputs.length) {
+      state.scenarioStage = runId;
+      state.busy = false;
+      activeRunOutputTimer = null;
+      render({ scrollToEnd: true });
+      return;
+    }
+
+    const node = outputs[index];
+    if (node.kind === ConversationKind.ASSISTANT) {
+      streamAssistantNode(node, runToken, () => revealAt(index + 1));
+      return;
+    }
+
+    state.messages = appendConversationNodes(state.messages, [node]);
+    render({ scrollToEnd: true });
+    activeRunOutputTimer = window.setTimeout(() => revealAt(index + 1), 220);
+  };
+  revealAt(0);
 }
 
 function runAgentStage(runId) {
@@ -341,14 +422,8 @@ function runAgentStage(runId) {
     render({ scrollToEnd: true });
     activeRunOutputTimer = window.setTimeout(() => {
       if (runToken !== activeRunToken) return;
-      state.messages = appendConversationNodes(
-        state.messages,
-        applyConversationConfig(run.outputIds.map(getScenarioMessage).filter(Boolean), state.editor.config),
-      );
-      state.scenarioStage = runId;
-      state.busy = false;
       activeRunOutputTimer = null;
-      render({ scrollToEnd: true });
+      revealRunOutputs(run, runId, runToken);
     }, 520);
   };
   const startedAt = performance.now();

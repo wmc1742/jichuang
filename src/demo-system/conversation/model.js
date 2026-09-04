@@ -9,6 +9,7 @@ export const ConversationKind = Object.freeze({
 
 export const ConversationPhase = Object.freeze({
   PENDING: 'pending',
+  STREAMING: 'streaming',
   RUNNING: 'running',
   EXECUTING: 'executing',
   COMPLETED: 'completed',
