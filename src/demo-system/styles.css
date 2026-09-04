@@ -179,6 +179,7 @@ img { display: block; }
   backdrop-filter: blur(20px);
 }
 .composer__entry { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: var(--composer-entry-align); gap: var(--composer-entry-gap); min-height: 58px; }
+.composer__prefix { flex: none; color: #fff; font-size: var(--composer-font-size); line-height: var(--composer-line-height); white-space: pre-wrap; }
 .composer__entry textarea {
   flex: 1;
   height: 58px;
@@ -208,6 +209,8 @@ img { display: block; }
 .product-attachment img { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
 .product-attachment button { padding: 0 0 0 4px; color: var(--agent-lavender-45); background: transparent; }
 .composer__toolbar { position: absolute; left: 14px; right: 14px; bottom: 14px; display: flex; align-items: center; justify-content: space-between; height: 32px; }
+.composer--new-task .composer__entry { top: 16px; left: 16px; right: 16px; min-height: 36px; align-items: center; }
+.composer--new-task .composer__toolbar { left: 16px; right: 16px; bottom: 16px; }
 .composer__tools { display: flex; gap: 8px; }
 .composer-tool { display: grid; place-items: center; width: 32px; height: 32px; padding: 8px; border-radius: 100px; background: var(--agent-white-08); }
 .composer-tool:hover { background: var(--agent-white-12); }
@@ -437,7 +440,7 @@ img { display: block; }
 .execution-summary__chevron .aic-icon { transform: rotate(90deg); transition: transform 160ms ease; }
 .message--execution.is-expanded .execution-summary__chevron .aic-icon { transform: rotate(180deg); }
 .execution-details { display: flex; width: 100%; flex-direction: column; gap: 12px; padding-top: 8px; }
-.execution-details > p { margin: 0 0 2px; color: rgba(255,255,255,.72); font-size: 14px; line-height: 24px; }
+.execution-details > p { margin: 0 0 2px; color: #fff; font-size: 16px; line-height: 28px; font-weight: 500; }
 .run-history { padding-top: 4px; }
 .execution-step { display: flex; align-items: center; gap: 4px; min-height: 30px; color: var(--agent-lavender); font-size: 14px; line-height: 20px; opacity: .5; }
 .execution-step__icon { display: grid; flex: none; place-items: center; width: 20px; height: 20px; }
@@ -456,9 +459,9 @@ img { display: block; }
 .confirmation-action--confirm { color: #4f2595; background: #fff; }
 .message--question-form,
 .message--confirmation { display: flex; flex-direction: column; gap: 12px; color: var(--agent-lavender); }
-.question-state-title { display: inline-flex; align-items: center; gap: 4px; min-height: 30px; color: rgba(255,255,255,.65); font-size: 14px; line-height: 20px; font-weight: 500; }
-.question-state-icon { position: relative; width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 2px; }
-.question-state-icon::after { content: ''; position: absolute; left: 3px; top: 3px; width: 10px; height: 10px; border: 1.5px solid currentColor; border-radius: 2px; background: var(--agent-page); }
+.question-state-title { display: inline-flex; align-items: center; gap: 4px; min-height: 30px; color: #eeebff; font-size: 16px; line-height: 20px; font-weight: 500; }
+.question-state-icon { display: grid; flex: none; place-items: center; width: 20px; height: 20px; }
+.question-state-icon .aic-icon { width: 20px; height: 20px; }
 .question-form {
   display: flex;
   flex-direction: column;

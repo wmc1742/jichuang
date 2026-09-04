@@ -132,7 +132,7 @@ function SelectionHistory(history = {}) {
 function QuestionForm({ message, body, presentation }) {
   return `
     <article class="message message--question-form${editorClass(message)}" ${editorAttributes(message, presentation)}>
-      <div class="question-state-title"><span class="question-state-icon" aria-hidden="true"></span><span>请确认</span></div>
+      <div class="question-state-title"><span class="question-state-icon" aria-hidden="true">${Icon('questionConfirm')}</span><span>请确认</span></div>
       <form class="question-form" data-message-id="${escapeHtml(message.id || '')}" onsubmit="return false">
         <div class="question-form__prompt">${escapeHtml(message.prompt || '请确认以下信息')}</div>
         <div class="question-form__controls">${body}</div>
@@ -174,7 +174,7 @@ function ConfirmationMessage(message, presentation) {
   const credit = message.credit ? `<span class="confirmation-credit">${Icon('credit')}<b>${escapeHtml(message.credit)}</b></span>` : '';
   return `
     <article class="message message--confirmation${editorClass(message)}" ${editorAttributes(message, presentation)}>
-      <div class="question-state-title"><span class="question-state-icon" aria-hidden="true"></span><span>请确认</span></div>
+      <div class="question-state-title"><span class="question-state-icon" aria-hidden="true">${Icon('questionConfirm')}</span><span>请确认</span></div>
       <div class="confirmation-card">
         <p>${escapeHtml(message.prompt || '')}</p>
         <div class="confirmation-card__actions">
@@ -197,7 +197,7 @@ function resolveArtifacts(message, artifacts = []) {
 
 function DocumentArtifactPresentation(message, presentation, context) {
   const artifact = resolveArtifacts(message, context.artifacts)[0] || message;
-  const status = artifact.statusLabel || message.status;
+  const status = message.showStatus === true ? (message.status || artifact.statusLabel) : '';
   const statusMarkup = status
     ? `<span class="artifact-card__status artifact-card__status--success">${escapeHtml(status)}</span>`
     : '';

@@ -8,11 +8,11 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260903i';
-import { media } from './data/assets.js?v=20260903i';
-import { HomeTemplate } from './templates/home.js?v=20260903i';
-import { StudioTemplate } from './templates/studio.js?v=20260903i';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260903i';
+} from './scenarios/luosifen.js?v=20260904b';
+import { media } from './data/assets.js?v=20260904b';
+import { HomeTemplate } from './templates/home.js?v=20260904b';
+import { StudioTemplate } from './templates/studio.js?v=20260904b';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904b';
 import { normalizeConversationNodes } from './conversation/model.js';
 import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js';
 
@@ -219,7 +219,7 @@ function syncDraft() {
     ? '.conversation-composer [data-role="composer-input"], .new-task-stage [data-role="composer-input"]'
     : '[data-role="composer-input"]';
   const input = document.querySelector(selector);
-  if (input) state.draft = input.value;
+  if (input) state.draft = `${input.dataset.draftPrefix || ''}${input.dataset.draftAttachment || ''}${input.value}`;
 }
 
 function openExistingTask() {
@@ -387,7 +387,7 @@ app.addEventListener('input', (event) => {
   const questionForm = event.target.closest('.question-form');
   if (questionForm) updateQuestionFormState(questionForm);
   if (event.target.matches('[data-role="composer-input"]')) {
-    state.draft = event.target.value;
+    state.draft = `${event.target.dataset.draftPrefix || ''}${event.target.dataset.draftAttachment || ''}${event.target.value}`;
     const composer = event.target.closest('.composer');
     const sendButton = composer?.querySelector('[data-action="send-message"]');
     if (sendButton) sendButton.disabled = state.busy || !state.draft.trim();

@@ -1,5 +1,23 @@
 import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js';
 
+function ComposerEntry({ newTask, draft, attachment }) {
+  const attachmentTitle = attachment?.title || '';
+  const attachmentIndex = newTask && attachmentTitle ? draft.indexOf(attachmentTitle) : -1;
+
+  if (attachmentIndex >= 0) {
+    const prefix = draft.slice(0, attachmentIndex);
+    const suffix = draft.slice(attachmentIndex + attachmentTitle.length);
+    return `
+      <span class="composer__prefix">${escapeHtml(prefix)}</span>
+      ${ProductAttachment(attachment, true)}
+      <textarea name="composer-draft" data-role="composer-input" data-draft-prefix="${escapeHtml(prefix)}" data-draft-attachment="${escapeHtml(attachmentTitle)}" aria-label="输入创作需求" placeholder="上传商品、素材或想法，开始你的创作">${escapeHtml(suffix)}</textarea>`;
+  }
+
+  return `
+    ${attachment ? ProductAttachment(attachment, true) : ''}
+    <textarea name="composer-draft" data-role="composer-input" aria-label="输入创作需求" placeholder="上传商品、素材或想法，开始你的创作">${escapeHtml(draft)}</textarea>`;
+}
+
 export function Composer({ home = false, newTask = false, draft = '', attachment = null, busy = false, confirmation = null }) {
   const variant = newTask ? 'composer--new-task' : home ? 'composer--home' : 'composer--conversation';
   const conversation = !home && !newTask;
@@ -16,8 +34,7 @@ export function Composer({ home = false, newTask = false, draft = '', attachment
         </div>` : ''}
       <div class="composer__surface">
         <div class="composer__entry">
-          ${attachment ? ProductAttachment(attachment, true) : ''}
-          <textarea name="composer-draft" data-role="composer-input" aria-label="输入创作需求" placeholder="上传商品、素材或想法，开始你的创作">${draft}</textarea>
+          ${ComposerEntry({ newTask, draft, attachment })}
         </div>
         <div class="composer__toolbar">
           <div class="composer__tools">

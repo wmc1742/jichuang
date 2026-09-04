@@ -1,6 +1,6 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260903i';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904b';
 import { Composer } from '../components/composer.js';
-import { MessageFeed } from '../components/messages.js?v=20260903i';
+import { MessageFeed } from '../components/messages.js?v=20260904b';
 import { icons, media } from '../data/assets.js';
 import { project } from '../scenarios/luosifen.js';
 import { Button, Icon, IconButton, escapeHtml } from '../ui/primitives.js';
@@ -121,7 +121,7 @@ function MessagesPreview(state) {
     { studioKind: 'execution-complete', id: 'studio-run-execution-completed', role: 'assistant', kind: 'agent-run', variant: 'execution', phase: 'completed', detail: '用时3m20s', expanded: false, thought: '根据大促节点和产品特征，我会先深入分析成片诉求。', steps: [{ id: 'analysis', label: '需求分析已完成', phase: 'completed' }] },
     { studioKind: 'question-answered', id: 'studio-question-answered', role: 'assistant', kind: 'agent-question', variant: 'multi-select', phase: 'answered', placement: 'feed', text: '已确认：视频将用于双11节点和年货节投放', expanded: s.statusHistoryExpanded, history: { type: 'multi-select', prompt: s.selectionPrompt, options, selected: [0, 2] } },
     { studioKind: 'status', id: 'studio-status', role: 'assistant', type: 'status', text: '商品信息读取完成' },
-    { studioKind: 'artifact', id: 'studio-artifact', role: 'assistant', type: 'artifact', artifactId: 'studio-message', artifactType: 'document', title: '即创螺蛳粉大促视频需求分析', timestamp: '2月5日 17:42', status: '已生成', statusTone: 'success' },
+    { studioKind: 'artifact', id: 'studio-artifact', role: 'assistant', type: 'artifact', artifactId: 'studio-message', artifactType: 'document', title: '即创螺蛳粉大促视频需求分析', timestamp: '2月5日 17:42', status: '已生成', statusTone: 'success', showStatus: true },
     { studioKind: 'images', id: 'studio-images', role: 'assistant', type: 'images', items: images },
     { studioKind: 'videos', id: 'studio-videos', role: 'assistant', type: 'videos', items: videos },
   ].filter((message) => s.messageType === 'all' || message.studioKind === s.messageType);
@@ -130,7 +130,7 @@ function MessagesPreview(state) {
 
 function ArtifactCardPreview(state) {
   const s = state.studio;
-  const message = { role: 'assistant', type: 'artifact', artifactId: 'studio', artifactType: s.artifactType, title: s.sampleText, timestamp: '2月5日 17:42', status: s.artifactStatusEnabled ? s.artifactStatusText : '', statusTone: s.artifactStatusTone };
+  const message = { role: 'assistant', type: 'artifact', artifactId: 'studio', artifactType: s.artifactType, title: s.sampleText, timestamp: '2月5日 17:42', status: s.artifactStatusText, statusTone: s.artifactStatusTone, showStatus: s.artifactStatusEnabled };
   return `<div class="studio-message-stage">${MessageFeed({ messages: [message] })}</div>`;
 }
 
