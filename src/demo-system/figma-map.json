@@ -1,0 +1,21 @@
+{
+  "fileKey": "Alh06MJP5p6N9cZkuHD5I4",
+  "root": "718:7237",
+  "approvedSections": {
+    "taskAndInformationArchitecture": "1176:118745",
+    "conversation": "1176:118746",
+    "artifactContent": "1176:118747"
+  },
+  "mappings": {
+    "TaskSidebar": "851:69977",
+    "ConversationComplex": "851:73420",
+    "WorkspaceStructure": "851:69976",
+    "ArtifactList": "851:71789",
+    "ArtifactTree": "851:71332",
+    "VideoDetail": "851:68688",
+    "HomeSkillRecommendation": "851:72208",
+    "ConversationTimeline": "1094:95515",
+    "ConversationCharacterPresentation": "1142:117872",
+    "ConversationVideoPresentation": "1142:118103"
+  }
+}

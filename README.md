@@ -4,7 +4,7 @@
 
 ## 在线内容
 
-- [打开即创设计 AI 交互 Demo](https://jichuang-design-ai.majorwmc.chatgpt.site)
+- [打开即创设计 AI 交互 Demo](https://wmc1742.github.io/jichuang/?view=conversation)
 - [项目上下文](./PROJECT_CONTEXT.md)
 - [会话与决策记录](./CONVERSATION_HISTORY.md)
 - [Codex 协作约定](./AGENTS.md)

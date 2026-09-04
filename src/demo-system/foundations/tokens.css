@@ -1,0 +1,34 @@
+@import url('../../../component-library/foundations/tokens.css');
+
+:root {
+  --agent-page: #110e17;
+  --agent-panel: #242128;
+  --agent-panel-strong: #2d2930;
+  --agent-white-04: rgba(255, 255, 255, 0.04);
+  --agent-white-08: rgba(255, 255, 255, 0.08);
+  --agent-white-10: rgba(255, 255, 255, 0.1);
+  --agent-white-12: rgba(255, 255, 255, 0.12);
+  --agent-lavender: #eeebff;
+  --agent-lavender-65: rgba(238, 235, 255, 0.65);
+  --agent-lavender-45: rgba(238, 235, 255, 0.45);
+  --agent-purple: #7244e5;
+  --agent-purple-soft: rgba(115, 68, 229, 0.3);
+  --agent-violet: #aa8cff;
+  --agent-cyan: #28ffef;
+  --agent-sidebar: 180px;
+  --agent-workbench: 700px;
+  --agent-header: 56px;
+  --agent-composer: 140px;
+  --composer-entry-align: center;
+  --composer-entry-gap: 8px;
+  --composer-radius: 24px;
+  --composer-font-size: 16px;
+  --composer-line-height: 28px;
+  --message-stack-gap: 12px;
+  --message-font-size: 14px;
+  --user-bubble-radius: 20px;
+  --user-bubble-padding: 16px;
+  --artifact-card-radius: 20px;
+  --artifact-card-padding: 16px;
+  --artifact-title-size: 16px;
+}
