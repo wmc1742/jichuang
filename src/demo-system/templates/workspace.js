@@ -1,4 +1,4 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904j';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904k';
 import { Composer } from '../components/composer.js?v=20260904j';
 import { MessageFeed } from '../components/messages.js?v=20260904j';
 import { ConversationHeader, ConversationSettingsModal, TaskSidebar } from '../components/navigation.js?v=20260904j';
@@ -28,11 +28,12 @@ function NewTaskTemplate(state) {
 export function WorkspaceTemplate(state) {
   if (state.taskMode === 'new' && state.messages.length === 0) return NewTaskTemplate(state);
   const editorOpen = Boolean(state.editor?.enabled);
-  const workbenchOpen = !editorOpen && state.workbenchView !== null;
+  const workbenchOpen = !editorOpen && Boolean(state.artifactWorkspace?.open);
+  const workbenchMaximized = workbenchOpen && Boolean(state.artifactWorkspace?.maximized);
   const confirmation = getActiveComposerQuestion(state.messages);
   const feedMessages = getFeedMessages(state.messages);
   return `
-    <div class="agent-shell ${workbenchOpen ? 'has-workbench' : ''} ${editorOpen ? 'is-editing' : ''} ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
+    <div class="agent-shell ${workbenchOpen ? 'has-workbench' : ''} ${workbenchMaximized ? 'workbench-maximized' : ''} ${editorOpen ? 'is-editing' : ''} ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
       ${TaskSidebar({ activeTask: 'existing' })}
       <section class="conversation-pane ${confirmation ? 'has-confirmation' : ''}">
         ${ConversationHeader({ projectMenuOpen: state.projectMenuOpen, title: state.projectTitle, editorEnabled: editorOpen })}

@@ -8,14 +8,22 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904j';
-import { media } from './data/assets.js?v=20260904j';
+} from './scenarios/luosifen.js?v=20260904k';
+import { media } from './data/assets.js?v=20260904k';
 import { HomeTemplate } from './templates/home.js?v=20260904j';
 import { StudioTemplate } from './templates/studio.js?v=20260904j';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904j';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904k';
 import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260904j';
 import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260904j';
 import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260904j';
+import {
+  ArtifactView,
+  artifactById,
+  closeArtifactTab,
+  createArtifactWorkspace,
+  getArtifactType,
+  openArtifactTab,
+} from './artifacts/model.js?v=20260904k';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -179,6 +187,14 @@ const state = {
   activeMedia: 0,
   playing: false,
   artifactTreeOpen: false,
+  artifactWorkspace: createArtifactWorkspace({
+    open: !editorMode && ['video-list', 'video-detail'].includes(viewMode),
+    selectedCategory: 'video',
+    rootMode: ArtifactView.CATEGORY,
+    activeView: viewMode === 'video-detail' ? ArtifactView.DETAIL : ArtifactView.CATEGORY,
+    activeTabId: viewMode === 'video-detail' ? 'campaign-video-1' : null,
+    openTabs: viewMode === 'video-detail' ? ['campaign-video-1'] : [],
+  }),
   studioSection: 'button',
   studio: loadStudioSettings(),
   editor: {
@@ -263,6 +279,7 @@ function openExistingTask() {
     taskMode: 'existing',
     projectTitle: '即创螺蛳粉',
     workbenchView: null,
+    artifactWorkspace: createArtifactWorkspace(),
     projectMenuOpen: false,
     settingsOpen: false,
     draft: '',
@@ -282,6 +299,7 @@ function openNewTask() {
     messages: [],
     scenarioStage: 1,
     workbenchView: null,
+    artifactWorkspace: createArtifactWorkspace(),
     draft: '',
     attachment: null,
     busy: false,
@@ -475,13 +493,28 @@ function advanceScenario(text, interactionId = null) {
 }
 
 function openWorkbench(type = 'video', detail = false) {
-  Object.assign(state, {
-    page: 'workspace',
-    artifactType: type,
-    workbenchView: detail ? 'detail' : 'list',
-    artifactTreeOpen: false,
+  state.page = 'workspace';
+  state.artifactWorkspace = {
+    ...state.artifactWorkspace,
+    open: true,
+    selectedCategory: type === 'character' ? 'actor' : type,
+    activeTabId: detail ? state.artifactWorkspace.activeTabId : null,
+    activeView: detail ? ArtifactView.DETAIL : state.artifactWorkspace.rootMode,
+    drillTarget: null,
     playing: false,
-  });
+  };
+}
+
+function showArtifact(artifactId) {
+  const artifact = artifactById(state.artifacts, artifactId);
+  if (!artifact) return;
+  state.artifactWorkspace = openArtifactTab(state.artifactWorkspace, artifact.id);
+  state.artifactWorkspace.loadingArtifactId = artifact.id;
+  window.setTimeout(() => {
+    if (state.artifactWorkspace.loadingArtifactId !== artifact.id) return;
+    state.artifactWorkspace.loadingArtifactId = null;
+    render();
+  }, 320);
 }
 
 function getEditorBaseMessage(id) {
@@ -630,6 +663,7 @@ app.addEventListener('click', async (event) => {
     state.editor.saveState = state.editor.localOnly ? 'local' : 'saved';
     state.projectMenuOpen = false;
     state.workbenchView = null;
+    state.artifactWorkspace.open = false;
   } else if (action === 'editor-save') {
     const form = target.closest('[data-role="conversation-editor-form"]');
     const messageId = form?.dataset.messageId;
@@ -696,7 +730,7 @@ app.addEventListener('click', async (event) => {
   } else if (action === 'home') {
     cancelActiveRun();
     setViewMode('home');
-    Object.assign(state, { page: 'home', workbenchView: null, messages: [], draft: '', attachment: null, busy: false });
+    Object.assign(state, { page: 'home', workbenchView: null, artifactWorkspace: createArtifactWorkspace(), messages: [], draft: '', attachment: null, busy: false });
   } else if (action === 'new-task') {
     openNewTask();
     return;
@@ -806,59 +840,81 @@ app.addEventListener('click', async (event) => {
     state.messages = state.messages.filter((message) => message.id !== interactionId);
     state.draft = '我想先补充一些信息：';
   } else if (action === 'open-artifact-list') {
-    openWorkbench(state.artifactType || 'video', false);
+    openWorkbench(state.artifactWorkspace.selectedCategory || 'document', false);
   } else if (action === 'close-workbench') {
-    state.workbenchView = null;
-    state.artifactTreeOpen = false;
-    state.playing = false;
+    state.artifactWorkspace.open = false;
+    state.artifactWorkspace.playing = false;
+  } else if (action === 'toggle-workbench-size') {
+    state.artifactWorkspace.maximized = !state.artifactWorkspace.maximized;
+  } else if (action === 'artifact-root') {
+    state.artifactWorkspace.activeTabId = null;
+    state.artifactWorkspace.activeView = state.artifactWorkspace.rootMode;
+    state.artifactWorkspace.drillTarget = null;
+  } else if (action === 'toggle-artifact-list-mode') {
+    const next = state.artifactWorkspace.rootMode === ArtifactView.LIST ? ArtifactView.CATEGORY : ArtifactView.LIST;
+    state.artifactWorkspace.rootMode = next;
+    state.artifactWorkspace.activeView = next;
+  } else if (action === 'activate-artifact-tab') {
+    state.artifactWorkspace.activeTabId = target.dataset.artifact;
+    state.artifactWorkspace.activeView = ArtifactView.DETAIL;
+    state.artifactWorkspace.drillTarget = null;
+    state.artifactWorkspace.playing = false;
+  } else if (action === 'close-artifact-tab') {
+    const artifactId = target.closest('[data-artifact]')?.dataset.artifact;
+    state.artifactWorkspace = closeArtifactTab(state.artifactWorkspace, artifactId);
   } else if (action === 'toggle-artifact-tree') {
     state.artifactTreeOpen = !state.artifactTreeOpen;
   } else if (action === 'set-artifact-type') {
-    state.artifactType = target.dataset.type;
-    state.workbenchView = 'list';
-    state.artifactTreeOpen = false;
+    state.artifactWorkspace.selectedCategory = target.dataset.type;
+    state.artifactWorkspace.activeTabId = null;
+    state.artifactWorkspace.rootMode = ArtifactView.CATEGORY;
+    state.artifactWorkspace.activeView = ArtifactView.CATEGORY;
   } else if (action === 'open-artifact') {
-    state.activeArtifact = target.dataset.artifact;
-    openWorkbench(target.dataset.type || 'document', true);
+    showArtifact(target.dataset.artifact);
   } else if (action === 'open-document') {
-    state.activeArtifact = target.dataset.artifact;
-    openWorkbench('document', true);
+    showArtifact(target.dataset.artifact || 'requirements-analysis');
   } else if (action === 'open-video') {
-    state.activeVideo = Number(target.dataset.index || 0);
-    openWorkbench('video', true);
+    showArtifact(target.dataset.artifact || `campaign-video-${Number(target.dataset.index || 0) + 1}`);
   } else if (action === 'open-image') {
-    state.activeMedia = Number(target.dataset.index || 0);
-    openWorkbench('image', true);
+    showArtifact(target.dataset.artifact || `product-image-${Number(target.dataset.index || 0) + 1}`);
   } else if (action === 'open-actor') {
-    state.activeMedia = Number(target.dataset.index || 0);
-    openWorkbench('actor', true);
+    showArtifact(target.dataset.artifact || `character-${Number(target.dataset.index || 0) + 1}`);
   } else if (action === 'select-video') {
     state.activeVideo = Number(target.dataset.index || 0);
     state.playing = false;
   } else if (action === 'select-media') {
     state.activeMedia = Number(target.dataset.index || 0);
   } else if (action === 'toggle-play') {
-    state.playing = !state.playing;
+    state.artifactWorkspace.playing = !state.artifactWorkspace.playing;
   } else if (action === 'quote-artifact') {
-    const titles = {
-      video: `推广大促成片${state.activeVideo + 1}`,
-      actor: `演员候选${state.activeMedia + 1}`,
-      image: `商品参考图${state.activeMedia + 1}`,
-      document: '即创螺蛳粉大促视频需求分析',
-    };
-    const thumbnails = {
-      video: media.conversationVideos[state.activeVideo % media.conversationVideos.length],
-      actor: media.conversationActors[state.activeMedia % media.conversationActors.length],
-      image: media.conversationProducts[state.activeMedia % media.conversationProducts.length],
-      document: project.product.thumbnail,
-    };
-    state.attachment = { title: titles[state.artifactType] || '当前产物', thumbnail: thumbnails[state.artifactType] || project.product.thumbnail };
-    state.workbenchView = null;
-    state.artifactTreeOpen = false;
+    const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
+    if (artifact) state.attachment = { artifactId: artifact.id, type: artifact.type, title: artifact.title, thumbnail: artifact.previewUrl || project.product.thumbnail };
+    state.artifactWorkspace.open = false;
   } else if (action === 'edit-artifact') {
-    state.draft = `请继续编辑当前${state.artifactType === 'video' ? '视频' : '产物'}：`;
-    state.workbenchView = null;
-    state.artifactTreeOpen = false;
+    const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
+    if (artifact && getArtifactType(artifact.type).canEdit) state.artifactWorkspace.activeView = ArtifactView.EDIT;
+  } else if (action === 'cancel-artifact-edit') {
+    state.artifactWorkspace.activeView = ArtifactView.DETAIL;
+    state.artifactWorkspace.drillTarget = null;
+  } else if (action === 'apply-artifact-edit') {
+    const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
+    if (artifact) {
+      artifact.revision = (artifact.revision || 1) + 1;
+      artifact.updatedAt = '刚刚';
+    }
+    state.artifactWorkspace.activeView = ArtifactView.DETAIL;
+    state.artifactWorkspace.drillTarget = null;
+  } else if (action === 'drill-artifact') {
+    state.artifactWorkspace.activeView = ArtifactView.DRILL;
+    state.artifactWorkspace.drillTarget = target.dataset.target || 'actor';
+  } else if (action === 'back-from-artifact-drill') {
+    state.artifactWorkspace.activeView = ArtifactView.EDIT;
+    state.artifactWorkspace.drillTarget = null;
+  } else if (action === 'generate-preview-video') {
+    const source = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
+    const id = `campaign-video-${Date.now()}`;
+    state.artifacts.push({ id, type: 'video', title: '即创螺蛳粉新成片', createdAt: '刚刚', sortOrder: Date.now(), status: 'generated', sourceArtifactId: source?.id, previewUrl: source?.previewUrl || media.conversationVideos[0] });
+    state.artifactWorkspace = openArtifactTab(state.artifactWorkspace, id);
   } else if (action === 'use-opportunity') {
     state.draft = '根据这个灵感，为即创螺蛳粉生成一组大促推广视频';
     state.attachment = project.product;
@@ -874,9 +930,8 @@ document.addEventListener('keydown', (event) => {
     if (state.page === 'home' || state.taskMode === 'new') startScenario();
     else if (state.draft.trim()) advanceScenario(state.draft.trim(), implicitInteractionByRun[state.scenarioStage] || null);
   }
-  if (event.key === 'Escape' && state.workbenchView) {
-    state.workbenchView = null;
-    state.artifactTreeOpen = false;
+  if (event.key === 'Escape' && state.artifactWorkspace.open) {
+    state.artifactWorkspace.open = false;
     render();
   }
 });

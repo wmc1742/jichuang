@@ -50,8 +50,14 @@ export const media = {
     `${assetRoot}/agent-2/conversation-product-4.png`,
     `${assetRoot}/agent-2/conversation-product-8.png`,
   ],
+  conversationProductsAll: [1, 2, 3, 4, 5, 6, 7, 8].map(
+    (id) => `${assetRoot}/agent-2/conversation-product-${id}.png`,
+  ),
   conversationActors: [1, 3, 6, 7, 9].map(
     (id) => `${assetRoot}/agent-2/conversation-actor-${id}.png`,
+  ),
+  conversationActorsAll: Array.from({ length: 13 }, (_, index) =>
+    `${assetRoot}/agent-2/conversation-actor-${index + 1}.png`,
   ),
   conversationVideos: [
     `${assetRoot}/agent-2/conversation-video-1.png`,

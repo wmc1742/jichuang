@@ -7,15 +7,35 @@ export const project = {
 };
 
 export const scenarioArtifacts = [
-  { id: 'requirements-analysis', type: 'document', title: '即创螺蛳粉大促视频需求分析', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42' },
-  { id: 'creative-storyboard', type: 'document', title: '即创螺蛳粉大促视频创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42' },
-  ...media.conversationActors.slice(0, 3).map((previewUrl, index) => ({ id: `character-${index + 1}`, type: 'character', title: `形象${index + 1}`, status: 'generated', previewUrl })),
-  ...Array.from({ length: 5 }, (_, index) => ({
+  { id: 'requirements-analysis', type: 'document', title: '即创螺蛳粉大促视频需求分析', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42', sortOrder: 10, revision: 1 },
+  { id: 'requirements-analysis-v2', type: 'document', title: '即创螺蛳粉大促视频需求分析v2.0', status: 'generated', statusLabel: '已生成', createdAt: '2月6日 17:42', sortOrder: 20, revision: 2, parentId: 'requirements-analysis' },
+  { id: 'creative-storyboard', type: 'document', title: '创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42', sortOrder: 30, revision: 1 },
+  { id: 'creative-storyboard-v2', type: 'document', title: '创意分镜v2.0', status: 'generated', statusLabel: '已生成', createdAt: '2月6日 17:42', sortOrder: 40, revision: 2, parentId: 'creative-storyboard' },
+  { id: 'creative-storyboard-actor', type: 'document', title: '增加一个配角的创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月7日 17:42', sortOrder: 50, revision: 3, parentId: 'creative-storyboard' },
+  ...media.conversationProductsAll.map((previewUrl, index) => ({
+    id: `product-image-${index + 1}`, type: 'image', title: `图片${index + 1}`, status: 'generated', createdAt: '2月7日 17:42', sortOrder: index + 1, previewUrl,
+  })),
+  ...media.conversationActorsAll.map((previewUrl, index) => ({
+    id: `character-${index + 1}`, type: 'actor', title: index < 6 ? '姜楠' : '张楚', status: 'generated', createdAt: '2月7日 17:42', sortOrder: index + 1, previewUrl,
+  })),
+  ...Array.from({ length: 6 }, (_, index) => ({
     id: `campaign-video-${index + 1}`,
     type: 'video',
-    title: `推广大促成片${index + 1}`,
+    title: `即创螺蛳粉成片${index + 1}`,
     status: 'generated',
+    createdAt: '2月7日 17:42',
+    sortOrder: index + 1,
     previewUrl: media.conversationVideos[index % media.conversationVideos.length],
+  })),
+  ...['推荐方案', '备选1', '推荐备选2', '推荐备选3'].map((title, index) => ({
+    id: `preview-${index + 1}`,
+    type: 'preview',
+    title,
+    status: 'draft',
+    createdAt: '2月7日 17:30',
+    sortOrder: 10 - index,
+    previewUrl: media.conversationVideos[index % media.conversationVideos.length],
+    clips: media.conversationProductsAll.slice(index, index + 4),
   })),
 ];
 
@@ -197,6 +217,6 @@ export const confirmationScenarioMessages = completedScenarioMessages;
 export const artifactGroups = {
   document: scenarioArtifacts.filter((artifact) => artifact.type === 'document'),
   video: [{ id: 'campaign-videos', title: '大促推广成片', timestamp: '2月5日 17:42', items: scenarioArtifacts.filter((artifact) => artifact.type === 'video').map((artifact) => ({ id: artifact.id, title: artifact.title, src: artifact.previewUrl })) }],
-  image: [],
-  actor: [{ id: 'young-characters', title: '年轻活力形象', timestamp: '2月5日 17:42', items: scenarioArtifacts.filter((artifact) => artifact.type === 'character').map((artifact) => artifact.previewUrl) }],
+  image: [{ id: 'product-images', title: '商品图片', timestamp: '2月7日 17:42', items: scenarioArtifacts.filter((artifact) => artifact.type === 'image') }],
+  actor: [{ id: 'young-characters', title: '年轻活力形象', timestamp: '2月5日 17:42', items: scenarioArtifacts.filter((artifact) => artifact.type === 'actor').map((artifact) => artifact.previewUrl) }],
 };

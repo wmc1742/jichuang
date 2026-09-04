@@ -1,119 +1,222 @@
-import { artifactGroups, project } from '../scenarios/luosifen.js';
 import { media } from '../data/assets.js';
-import { Button, Icon, IconButton, escapeHtml } from '../ui/primitives.js';
+import {
+  ArtifactType,
+  ArtifactView,
+  artifactById,
+  artifactsByType,
+  createArtifactWorkspace,
+  generatedArtifactTypes,
+  getArtifactType,
+} from '../artifacts/model.js';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js';
 
-const types = [
-  { id: 'document', label: '文稿' },
-  { id: 'video', label: '视频' },
-  { id: 'image', label: '图片' },
-  { id: 'actor', label: '演员' },
-];
+function workspaceState(state) {
+  if (state.artifactWorkspace) return state.artifactWorkspace;
+  return createArtifactWorkspace({
+    open: true,
+    selectedCategory: state.artifactType || ArtifactType.DOCUMENT,
+    rootMode: state.workbenchView === 'list' ? ArtifactView.CATEGORY : ArtifactView.DETAIL,
+    activeView: state.workbenchView === 'detail' ? ArtifactView.DETAIL : ArtifactView.CATEGORY,
+    activeTabId: state.activeArtifact || null,
+    openTabs: state.activeArtifact ? [state.activeArtifact] : [],
+  });
+}
 
-function ArtifactHeader(state) {
-  const canToggleTree = state.workbenchView === 'detail' && state.artifactType === 'document';
+function ArtifactTabs(state, workspace) {
+  const artifacts = state.artifacts || [];
+  const rootActive = !workspace.activeTabId || [ArtifactView.CATEGORY, ArtifactView.LIST].includes(workspace.activeView);
+  return `
+    <nav class="artifact-tabs" aria-label="已打开的产物">
+      <button class="artifact-root-tab ${rootActive ? 'is-active' : ''} ${workspace.openTabs.length ? 'is-compact' : ''}" data-action="artifact-root" title="生成内容">
+        ${Icon('artifactList')}<span>生成内容</span>
+      </button>
+      ${workspace.openTabs.map((id) => {
+        const artifact = artifactById(artifacts, id);
+        if (!artifact) return '';
+        const definition = getArtifactType(artifact.type);
+        const active = workspace.activeTabId === id && !rootActive;
+        return `<button class="artifact-file-tab ${active ? 'is-active' : ''}" data-action="activate-artifact-tab" data-artifact="${escapeHtml(id)}" title="${escapeHtml(artifact.title)}">
+          ${Icon(definition.icon)}<span>${escapeHtml(artifact.title)}</span>${active ? '<i data-action="close-artifact-tab" aria-label="关闭产物">×</i>' : ''}
+        </button>`;
+      }).join('')}
+    </nav>`;
+}
+
+function ArtifactHeader(state, workspace) {
   return `
     <header class="workbench-header">
-      <nav class="artifact-tabs" aria-label="产物类型">
-        ${types.map((type) => `<button class="artifact-tab ${state.artifactType === type.id ? 'is-active' : ''}" data-action="set-artifact-type" data-type="${type.id}">${Icon(type.id)}<span>${type.label}</span></button>`).join('')}
-      </nav>
+      ${ArtifactTabs(state, workspace)}
       <div class="workbench-actions">
-        ${IconButton({
-          icon: 'artifactList',
-          label: canToggleTree ? (state.artifactTreeOpen ? '收起产物目录' : '展开产物目录') : '产物列表',
-          action: canToggleTree ? 'toggle-artifact-tree' : 'open-artifact-list',
-          className: state.artifactTreeOpen ? 'is-active' : '',
-        })}
-        ${IconButton({ icon: 'workbench', label: '收起工作台', action: 'close-workbench' })}
+        ${IconButton({ icon: 'artifactList', label: workspace.maximized ? '恢复分栏' : '最大化产物窗口', action: 'toggle-workbench-size', className: workspace.maximized ? 'is-active' : '' })}
+        ${IconButton({ icon: 'workbench', label: '收起产物窗口', action: 'close-workbench' })}
       </div>
     </header>`;
 }
 
-function DocumentList() {
-  return `<div class="artifact-list">${artifactGroups.document.map((item) => `
-    <button class="artifact-list-card" data-action="open-document" data-artifact="${item.id}">
-      <span>${Icon('document')}<b>${escapeHtml(item.title)}</b><small>${escapeHtml(item.subtitle)}</small></span>
-      <time>${escapeHtml(item.timestamp)}</time>
-    </button>`).join('')}</div>`;
+function TypeFilters(state, workspace) {
+  return `<nav class="artifact-type-filters" aria-label="产物分类">
+    ${generatedArtifactTypes(state.artifacts).map((type) => `<button class="${workspace.selectedCategory === type.id ? 'is-active' : ''}" data-action="set-artifact-type" data-type="${type.id}">${Icon(type.icon)}<span>${type.label}</span></button>`).join('')}
+  </nav>`;
 }
 
-function MediaGroupList(type) {
-  return `<div class="media-groups">${artifactGroups[type].map((group) => `
-    <section class="media-group">
-      <div class="media-group__head"><span><b>${escapeHtml(group.title)}</b><time>${escapeHtml(group.timestamp)}</time></span><small>${group.items.length} 项</small></div>
-      <div class="workbench-media-grid workbench-media-grid--${type}">
-        ${group.items.map((item, index) => {
-          const src = typeof item === 'string' ? item : item.src;
-          const label = typeof item === 'string' ? `${group.title}${index + 1}` : item.title;
-          const action = type === 'video' ? 'open-video' : type === 'actor' ? 'open-actor' : 'open-image';
-          return `<button data-action="${action}" data-index="${index}"><img src="${src}" alt="${escapeHtml(label)}">${type === 'video' ? `<span class="play-button">${Icon('play')}</span>` : ''}</button>`;
-        }).join('')}
+function DocumentCard(artifact) {
+  return `<button class="artifact-list-card" data-action="open-artifact" data-artifact="${escapeHtml(artifact.id)}">
+    <span class="artifact-list-card__copy"><span>${Icon('document')}<b>${escapeHtml(artifact.title)}</b></span><time>${escapeHtml(artifact.createdAt || '')}</time></span>
+  </button>`;
+}
+
+function MediaTile(artifact) {
+  const type = getArtifactType(artifact.type).id;
+  const preview = artifact.previewUrl || media.productSquare;
+  return `<button class="artifact-media-tile artifact-media-tile--${type}" data-action="open-artifact" data-artifact="${escapeHtml(artifact.id)}" title="${escapeHtml(artifact.title)}">
+    <img src="${escapeHtml(preview)}" alt="${escapeHtml(artifact.title)}">
+    ${type === ArtifactType.VIDEO ? `<span class="play-button">${Icon('play')}</span>` : ''}
+    ${type === ArtifactType.ACTOR ? `<span class="artifact-media-name">${escapeHtml(artifact.title)}</span>` : ''}
+  </button>`;
+}
+
+function PreviewCard(artifact) {
+  const clips = artifact.clips || [];
+  return `<button class="artifact-preview-card" data-action="open-artifact" data-artifact="${escapeHtml(artifact.id)}">
+    <strong>${Icon('video')}${escapeHtml(artifact.title)}</strong>
+    <span class="artifact-preview-card__stage"><img src="${escapeHtml(artifact.previewUrl)}" alt="">${Icon('play')}</span>
+    <span class="artifact-preview-card__clips">${clips.slice(0, 3).map((src) => `<img src="${escapeHtml(src)}" alt="">`).join('')}</span>
+  </button>`;
+}
+
+function TypeCollection(state, type) {
+  const artifacts = artifactsByType(state.artifacts, type);
+  if (!artifacts.length) return '<div class="artifact-empty">当前任务还没有生成此类内容</div>';
+  if (type === ArtifactType.DOCUMENT) return `<div class="artifact-document-list">${artifacts.map(DocumentCard).join('')}</div>`;
+  if (type === ArtifactType.PREVIEW) return `<div class="artifact-preview-grid">${artifacts.map(PreviewCard).join('')}</div>`;
+  return `<div class="artifact-media-grid artifact-media-grid--${type}">${artifacts.map(MediaTile).join('')}</div>`;
+}
+
+function ArtifactOverview(state, workspace) {
+  const listMode = workspace.rootMode === ArtifactView.LIST;
+  return `<section class="artifact-overview">
+    <div class="artifact-overview__toolbar">
+      ${listMode ? '<span class="artifact-overview__label">生成内容</span>' : TypeFilters(state, workspace)}
+      <button class="artifact-view-toggle" data-action="toggle-artifact-list-mode">${Icon('artifactList')}<span>${listMode ? '分类模式' : '列表模式'}</span></button>
+    </div>
+    ${listMode
+      ? `<div class="artifact-groups">${generatedArtifactTypes(state.artifacts).map((type) => `<section><h2>${type.label}</h2>${TypeCollection(state, type.id)}</section>`).join('')}</div>`
+      : TypeCollection(state, workspace.selectedCategory)}
+  </section>`;
+}
+
+function DetailAction({ label, action, primary = false, icon = null }) {
+  return `<button class="artifact-action ${primary ? 'is-primary' : ''}" data-action="${action}">${icon ? Icon(icon) : ''}<span>${escapeHtml(label)}</span></button>`;
+}
+
+function DetailTitle(artifact, actions = '') {
+  return `<div class="artifact-detail-title"><h1>${escapeHtml(artifact.title)}</h1><div>${actions}</div></div>`;
+}
+
+function SubjectCard({ image, kind, name, voice = false, drill = false }) {
+  return `<button class="artifact-subject-card" ${drill ? 'data-action="drill-artifact" data-target="actor"' : ''}>
+    <span class="artifact-subject-card__media"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}">${voice ? `<i>${Icon('play')}</i>` : ''}</span>
+    <small>${escapeHtml(kind)}</small><b>${escapeHtml(name)}</b>
+  </button>`;
+}
+
+function StoryboardDocument({ editing = false } = {}) {
+  return `<article class="artifact-document ${editing ? 'is-editing' : ''}">
+    <section>
+      <h2>创意概述</h2>
+      ${editing
+        ? '<textarea aria-label="创意概述">视频以小个子女生冬季穿搭困境开场，对比普通长款外套显矮与银灰短外套显高的效果。动态演示袖子脱卸变马甲、半袖的多穿场景，最后强调7天无理由退货的保障，引导点击购买。</textarea>'
+        : '<p class="artifact-document__intro">视频以小个子女生冬季穿搭困境开场，对比普通长款外套显矮与银灰短外套显高的效果。动态演示袖子脱卸变马甲、半袖的多穿场景，特写羊羔绒质感及90%灰鹅绒填充细节，最后强调7天无理由退货的保障，引导点击购买。</p>'}
+      <button class="artifact-text-link">查看完整创意 <span>›</span></button>
+    </section>
+    <section>
+      <h2>分镜脚本</h2>
+      <h3>1&nbsp;&nbsp;主体设定</h3>
+      <div class="artifact-subject-grid">
+        ${SubjectCard({ image: media.productSquare, kind: '商品', name: '即创螺蛳粉' })}
+        ${SubjectCard({ image: media.conversationActors[0], kind: '主角', name: '张楚', drill: true })}
+        ${SubjectCard({ image: media.conversationActors[1], kind: '配角', name: '姜楠', drill: true })}
+        ${SubjectCard({ image: media.conversationActors[2], kind: '旁白', name: '中性女声', voice: true })}
       </div>
-    </section>`).join('')}</div>`;
-}
-
-function ArtifactList(state) {
-  return state.artifactType === 'document' ? DocumentList() : MediaGroupList(state.artifactType);
-}
-
-function StructuredDocument() {
-  return `
-    <article class="structured-document">
-      <h1>即创螺蛳粉大促视频需求分析</h1>
-      <div class="document-intro">
-        <p>大促期间，消费者除了商品本身的基础信息以外，更加关注同价格下的差异化卖点，以及促销活动带来的额外优惠。</p>
-        <p>因此内容会重点展示螺蛳粉的酸辣口味、丰富配料与零添加特性，并把优惠信息放在前后两个转化节点。</p>
+    </section>
+    <section>
+      <h3>2&nbsp;&nbsp;分镜描述</h3>
+      <p>• 镜头1：猎奇开场+夸张演绎，制造悬念和趣味性。</p>
+      <div class="storyboard-table">
+        <header><span>台词台词</span><span>画面描述</span></header>
+        <div><span><i>主角：张楚</i>“姐你这抽屉，你这柜子里这么乱，咋回事啊？”<i>配角：姜楠</i>“你俩的柜子？”</span><span><b>前景：</b>家政大姐正费力地拉开一个被堵塞的抽屉，她回头看向镜头，表情惊讶。<br><b>中景：</b>人物快速进入画面，形成生活化冲突。</span></div>
       </div>
-      <section><h2>商品信息</h2><h3>1&nbsp;&nbsp;商品参考图</h3><div class="reference-card"><div class="reference-card__head"><span>上传丰富的参考图有助于提升模型的生成质量</span><button>＋ 添加</button></div><div class="reference-images">${media.conversationProducts.map((src) => `<img src="${src}" alt="商品参考图">`).join('')}</div></div></section>
-      <section><h3>2&nbsp;&nbsp;商品详细信息</h3><div class="document-card"><h4>产品卖点</h4><ul><li><span>主推卖点</span>酸辣鲜香，配料丰富，一碗更满足</li><li>独立料包，口味浓郁，适合囤货</li><li>大促优惠直接，适合强转化表达</li></ul></div><div class="document-card"><h4>面向人群</h4><ul><li><span>核心人群</span>20-35岁年轻上班族</li><li>偏好方便速食、重口味与高性价比</li></ul></div></section>
-      <section><h2>内容偏好</h2><div class="document-card"><h4>表达方式</h4><ul><li>开头3秒使用加班和深夜饥饿场景建立共鸣</li><li>中段快速展示配料和酸辣口感</li><li>结尾集中呈现大促到手价与行动指令</li></ul></div></section>
-    </article>`;
+    </section>
+  </article>`;
 }
 
-function ArtifactTree() {
-  return `
-    <aside class="artifact-tree">
-      <details open><summary>${escapeHtml(project.title)}</summary>
-        <details open><summary>文稿</summary><button class="is-active">即创螺蛳粉大促视频需求分析</button><button>创意方向</button><button>创意分镜</button></details>
-        <details open><summary>图片</summary>${Array.from({ length: 5 }, (_, i) => `<button>商品图${i + 1}</button>`).join('')}</details>
-        <details open><summary>演员</summary><button>林若曦</button><button>姜楠</button></details>
-        <details open><summary>视频</summary>${Array.from({ length: 5 }, (_, i) => `<button>推广大促成片${i + 1}</button>`).join('')}</details>
-      </details>
-    </aside>`;
+function DocumentDetail(artifact, editing = false) {
+  const title = editing ? { ...artifact, title: `编辑：${artifact.title}` } : artifact;
+  const actions = editing
+    ? `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`
+    : `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`;
+  return `<div class="artifact-detail artifact-detail--document">${DetailTitle(title, actions)}<div class="artifact-detail-scroll">${StoryboardDocument({ editing })}</div></div>`;
 }
 
-function DocumentDetail(state) {
-  return `<div class="document-detail ${state.artifactTreeOpen ? 'has-artifact-tree' : ''}"><div class="document-scroll">${StructuredDocument()}</div>${state.artifactTreeOpen ? ArtifactTree() : ''}</div>`;
+function VideoDetail(artifact, workspace) {
+  return `<div class="artifact-detail artifact-detail--video">
+    ${DetailTitle(artifact, `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`)}
+    <button class="artifact-video-stage ${workspace.playing ? 'is-playing' : ''}" data-action="toggle-play"><img src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><span>${Icon('play')}</span><i>播放中</i></button>
+  </div>`;
 }
 
-function VideoDetail(state) {
-  const videos = artifactGroups.video[0].items;
-  const active = videos[state.activeVideo] || videos[0];
-  return `
-    <div class="video-detail">
-      <div class="video-thumbs">${videos.map((video, index) => `<button class="${state.activeVideo === index ? 'is-active' : ''}" data-action="select-video" data-index="${index}"><img src="${video.src}" alt="${escapeHtml(video.title)}"></button>`).join('')}</div>
-      <button class="video-stage ${state.playing ? 'is-playing' : ''}" data-action="toggle-play"><img src="${active.src}" alt="${escapeHtml(active.title)}"><span class="play-button play-button--large">${Icon('play')}</span><span class="playing-label">播放中</span></button>
-    </div>`;
+function ImageDetail(artifact) {
+  return `<div class="artifact-detail artifact-detail--image">${DetailTitle(artifact, DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' }))}<img class="artifact-image-stage" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"></div>`;
 }
 
-function ImageDetail(state, actor = false) {
-  const list = actor ? media.conversationActors : media.conversationProducts;
-  const src = list[state.activeMedia % list.length];
-  return `<div class="single-media-detail"><div class="single-media-thumbs">${list.slice(0, 5).map((item, index) => `<button class="${state.activeMedia === index ? 'is-active' : ''}" data-action="select-media" data-index="${index}"><img src="${item}" alt="预览 ${index + 1}"></button>`).join('')}</div><img class="single-media-hero" src="${src}" alt="${actor ? '演员详情' : '图片详情'}">${actor ? '<div class="actor-meta"><h2>姜楠</h2><p>25岁，年轻上班族形象；自然、松弛，适合生活化剧情。</p><dl><dt>声音</dt><dd>清爽青年音</dd><dt>风格</dt><dd>真实感、轻喜剧</dd></dl></div>' : ''}</div>`;
+function VideoEditor(artifact, preview = false) {
+  const frames = artifact.clips?.length ? artifact.clips : media.conversationProductsAll;
+  return `<div class="artifact-detail artifact-detail--video-editor">
+    <div class="artifact-editor-head"><button data-action="cancel-artifact-edit">‹&nbsp; 返回</button><div>${preview ? DetailAction({ label: '≈100 生成成片', action: 'generate-preview-video', primary: true }) : `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`}</div></div>
+    <div class="video-editor-layout">
+      <div class="video-editor-player"><img src="${escapeHtml(artifact.previewUrl)}" alt=""><span>${Icon('play')}</span></div>
+      <section class="video-editor-controls"><h2>画面1</h2><div class="video-editor-scene-tabs"><button>＋<small>新增视频</small></button><button class="is-active"><em>AI</em><img src="${escapeHtml(frames[0])}" alt=""></button></div><div class="video-editor-prompt"><h3>编辑描述</h3><textarea>前3秒：中景镜头，初始静止状态下五个精致的白色小瓷碗分别盛放着五种原料，整齐排列；镜头开始缓慢推进，保持画面稳定无动态，传递天然健康高级的氛围。</textarea><footer><b>参考主体：</b>${media.conversationActors.slice(0, 2).map((src) => `<img src="${src}" alt="">`).join('')}<button>＋</button><span>输入@可引用参考主体</span></footer></div></section>
+    </div>
+    <div class="video-editor-timeline"><span>▶</span><span>◼</span><b>00:04</b><small>/00:55</small><div class="video-editor-tools"><button>智能包装</button></div></div>
+    <div class="video-editor-frames">${frames.slice(0, 8).map((src, index) => `<button class="${index === 0 ? 'is-active' : ''}"><img src="${escapeHtml(src)}" alt="画面${index + 1}"></button>`).join('')}</div>
+  </div>`;
 }
 
-function DetailBody(state) {
-  if (state.artifactType === 'document') return DocumentDetail(state);
-  if (state.artifactType === 'video') return VideoDetail(state);
-  if (state.artifactType === 'actor') return ImageDetail(state, true);
-  return ImageDetail(state, false);
+function ActorDetail(artifact, editing = false, embedded = false) {
+  const actions = editing
+    ? `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`
+    : `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`;
+  return `<div class="artifact-detail artifact-detail--actor">${embedded ? '' : DetailTitle(artifact, actions)}<div class="actor-detail-layout"><img class="actor-detail-hero" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><div class="actor-detail-copy"><div class="actor-variants">${media.conversationActors.slice(0, 5).map((src, index) => `<button class="${index === 0 ? 'is-active' : ''}"><img src="${src}" alt="候选形象${index + 1}"></button>`).join('')}</div><section><header><h2>形象描述</h2><span>保存至演员库　编辑</span></header>${editing ? '<textarea>年轻女性，热爱美食，喜欢分享的年轻女性，妆容自然，笑容亲切有感染力。</textarea>' : '<p>年轻女性，热爱美食，喜欢分享的年轻女性，妆容自然，笑容亲切有感染力。在不同场景下，会穿着符合场景的服装。</p>'}</section><button class="actor-voice">${Icon('play')}带货口播</button><section><header><h2>音色描述</h2><span>编辑</span></header><p>20-30岁青年女性，音色温润明亮，热情真诚有感染力，语速较快。</p></section></div></div></div>`;
 }
 
-function DetailActions(state) {
-  const label = state.artifactType === 'video' ? '编辑视频' : state.artifactType === 'image' ? '编辑图片' : state.artifactType === 'actor' ? '编辑演员' : '编辑文稿';
-  return `<footer class="detail-actions">${Button({ label: '引用至会话', action: 'quote-artifact', variant: 'inverted' })}${Button({ label, action: 'edit-artifact', variant: 'inverted' })}</footer>`;
+function DrillEditor(artifact) {
+  const actor = { ...artifact, title: '张楚', previewUrl: media.conversationActors[0] };
+  return `<div class="artifact-detail artifact-detail--drill"><div class="artifact-editor-head"><button data-action="back-from-artifact-drill">‹&nbsp; 返回</button><div>${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}</div></div>${ActorDetail(actor, true, true)}</div>`;
+}
+
+function LoadingDetail() {
+  return '<div class="artifact-loading"><span></span><p>正在加载产物内容</p></div>';
+}
+
+function ArtifactContent(state, workspace) {
+  if (workspace.loadingArtifactId) return LoadingDetail();
+  const artifact = artifactById(state.artifacts, workspace.activeTabId);
+  if (!artifact || [ArtifactView.CATEGORY, ArtifactView.LIST].includes(workspace.activeView)) return ArtifactOverview(state, workspace);
+  if (workspace.activeView === ArtifactView.DRILL) return DrillEditor(artifact);
+  const type = getArtifactType(artifact.type).id;
+  if (workspace.activeView === ArtifactView.EDIT) {
+    if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, true);
+    if (type === ArtifactType.VIDEO) return VideoEditor(artifact);
+    if (type === ArtifactType.ACTOR) return ActorDetail(artifact, true);
+  }
+  if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact);
+  if (type === ArtifactType.VIDEO) return VideoDetail(artifact, workspace);
+  if (type === ArtifactType.IMAGE) return ImageDetail(artifact);
+  if (type === ArtifactType.PREVIEW) return VideoEditor(artifact, true);
+  return ActorDetail(artifact);
 }
 
 export function ArtifactWorkbench(state) {
-  const detail = state.workbenchView === 'detail';
-  return `<aside class="artifact-workbench">${ArtifactHeader(state)}<div class="workbench-body">${detail ? DetailBody(state) : ArtifactList(state)}</div>${detail ? DetailActions(state) : ''}</aside>`;
+  const workspace = workspaceState(state);
+  return `<aside class="artifact-workbench ${workspace.maximized ? 'is-maximized' : ''}">${ArtifactHeader(state, workspace)}<div class="workbench-body">${ArtifactContent(state, workspace)}</div></aside>`;
 }
