@@ -23,5 +23,5 @@ export function getRunSimulationPlan(run = {}) {
 }
 
 export function formatLiveElapsed(elapsedSeconds) {
-  return `用时 ${Math.max(0, Math.floor(Number(elapsedSeconds) || 0))} 秒`;
+  return `${Math.max(0, Math.floor(Number(elapsedSeconds) || 0))} 秒`;
 }

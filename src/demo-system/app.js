@@ -8,11 +8,11 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904f';
-import { media } from './data/assets.js?v=20260904f';
-import { HomeTemplate } from './templates/home.js?v=20260904f';
-import { StudioTemplate } from './templates/studio.js?v=20260904f';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904f';
+} from './scenarios/luosifen.js?v=20260904g';
+import { media } from './data/assets.js?v=20260904g';
+import { HomeTemplate } from './templates/home.js?v=20260904g';
+import { StudioTemplate } from './templates/studio.js?v=20260904g';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904g';
 import { normalizeConversationNodes } from './conversation/model.js';
 import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js';
 import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js';
