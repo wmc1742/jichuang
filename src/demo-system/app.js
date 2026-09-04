@@ -8,14 +8,14 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904g';
-import { media } from './data/assets.js?v=20260904g';
-import { HomeTemplate } from './templates/home.js?v=20260904g';
-import { StudioTemplate } from './templates/studio.js?v=20260904g';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904g';
+} from './scenarios/luosifen.js?v=20260904h';
+import { media } from './data/assets.js?v=20260904h';
+import { HomeTemplate } from './templates/home.js?v=20260904h';
+import { StudioTemplate } from './templates/studio.js?v=20260904h';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904h';
 import { normalizeConversationNodes } from './conversation/model.js';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js';
-import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260904h';
+import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260904h';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';

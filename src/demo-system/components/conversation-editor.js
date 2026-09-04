@@ -1,5 +1,5 @@
 import { Icon, escapeHtml } from '../ui/primitives.js';
-import { getConversationApiBinding } from '../editor/conversation-api-bindings.js';
+import { getConversationApiBinding } from '../editor/conversation-api-bindings.js?v=20260904h';
 import { resolveConversationPresentation } from '../conversation/component-registry.js';
 
 const iconOptions = [

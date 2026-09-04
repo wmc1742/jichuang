@@ -1,8 +1,8 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904g';
-import { Composer } from '../components/composer.js?v=20260904g';
-import { MessageFeed } from '../components/messages.js?v=20260904g';
-import { ConversationHeader, ConversationSettingsModal, TaskSidebar } from '../components/navigation.js?v=20260904g';
-import { ConversationEditor } from '../components/conversation-editor.js?v=20260904g';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904h';
+import { Composer } from '../components/composer.js?v=20260904h';
+import { MessageFeed } from '../components/messages.js?v=20260904h';
+import { ConversationHeader, ConversationSettingsModal, TaskSidebar } from '../components/navigation.js?v=20260904h';
+import { ConversationEditor } from '../components/conversation-editor.js?v=20260904h';
 import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js';
 
 const newTaskSkills = ['场景优化', '家清剧情视频', '服饰多场景试穿', '爆款裂变', '商品卖点拆解', '口播脚本'];
