@@ -104,7 +104,7 @@ function ExecutionMessage(message, presentation) {
     </article>`;
 }
 
-function SelectionHistory(history = {}) {
+function SelectionHistory(history = {}, className = 'status-history') {
   if (history.type === 'multi-select') {
     const selected = new Set(history.selected || []);
     const options = (history.options || []).map((label, index) => {
@@ -112,7 +112,7 @@ function SelectionHistory(history = {}) {
       return `<div class="history-option"><span>${escapeHtml(label)}</span><span class="history-checkbox ${checked ? 'is-selected' : ''}" aria-hidden="true">${checked ? Icon('checkboxSelected') : ''}</span></div>`;
     }).join('');
     return `
-      <div class="status-history">
+      <div class="${className}">
         <div class="question-form question-form--history">
           <div class="question-form__prompt">${escapeHtml(history.prompt || '历史选择')}</div>
           <div class="question-form__controls">${options}</div>
@@ -121,12 +121,25 @@ function SelectionHistory(history = {}) {
   }
 
   if (history.type === 'confirmation') {
-    return `<div class="status-history"><div class="confirmation-history">${escapeHtml(history.prompt || '')}</div></div>`;
+    return `<div class="${className}"><div class="confirmation-history">${escapeHtml(history.prompt || '')}</div></div>`;
   }
 
   const fields = (history.fields || []).map((field) => `
     <div class="status-history__field"><span>${escapeHtml(field.label)}</span><b>${escapeHtml(field.value)}</b></div>`).join('');
-  return fields ? `<div class="status-history"><div class="question-form question-form--history"><div class="question-form__title">${Icon('selectionForm')}<span>${escapeHtml(history.prompt || '历史填写')}</span></div><div class="question-form__controls">${fields}</div></div></div>` : '';
+  return fields ? `<div class="${className}"><div class="question-form question-form--history"><div class="question-form__title">${Icon('selectionForm')}<span>${escapeHtml(history.prompt || '历史填写')}</span></div><div class="question-form__controls">${fields}</div></div></div>` : '';
+}
+
+function AnsweredQuestionMessage(message, presentation) {
+  const expandable = Boolean(message.history);
+  const icon = message.icon === 'none' ? '' : `<span class="answered-question__icon">${Icon(message.icon || 'questionConfirm')}</span>`;
+  return `
+    <article class="message message--question-answered ${message.expanded ? 'is-expanded' : ''}${editorClass(message)}" ${editorAttributes(message, presentation)}>
+      <button class="answered-question__summary" type="button" ${expandable ? `data-action="toggle-status" data-message-id="${escapeHtml(message.id || '')}" aria-expanded="${message.expanded ? 'true' : 'false'}"` : 'disabled'}>
+        ${icon}<span>${escapeHtml(message.text)}</span>
+        ${expandable ? `<span class="answered-question__chevron" aria-hidden="true">${Icon('chevronRight')}</span>` : ''}
+      </button>
+      ${message.expanded ? SelectionHistory(message.history, 'answered-question__history') : ''}
+    </article>`;
 }
 
 function QuestionForm({ message, body, presentation }) {
@@ -236,6 +249,7 @@ const renderers = Object.freeze({
   AssistantText,
   FollowUpMessage,
   StatusMessage,
+  AnsweredQuestionMessage,
   ProgressMessage,
   RunCompleteMessage,
   ExecutionMessage,

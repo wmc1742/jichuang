@@ -15,7 +15,7 @@ export const conversationComponentRegistry = Object.freeze({
 });
 
 function questionRenderer(node) {
-  if (node.phase === ConversationPhase.ANSWERED) return 'StatusMessage';
+  if (node.phase === ConversationPhase.ANSWERED) return 'AnsweredQuestionMessage';
   if (node.variant === 'confirmation') return 'ConfirmationMessage';
   if (node.variant === 'multi-select') return 'MultiSelectMessage';
   if (node.variant === 'single-select') return 'SingleSelectMessage';

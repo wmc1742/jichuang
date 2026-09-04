@@ -131,6 +131,18 @@ const bindings = {
     sample: { type: 'interaction.required', mode: 'form', schema: { fields: [{ key: 'duration', type: 'select' }] } },
   },
   StatusMessage: {
+    controller: 'applyConversationEvent() → receipt.created',
+    transport: 'SSE',
+    endpoint: streamEndpoint,
+    event: 'receipt.created',
+    trigger: '任务或工具返回一条独立状态回执',
+    fields: [
+      ['text', 'event.summary', '回执内容'],
+      ['icon', 'event.status', '根据状态映射图标'],
+    ],
+    sample: { type: 'receipt.created', status: 'completed', summary: '商品信息读取完成' },
+  },
+  AnsweredQuestionMessage: {
     controller: 'applyConversationEvent() → interaction.submitted',
     transport: 'HTTP response + local state transition',
     endpoint: 'POST /api/agent/interactions/:interactionId/submit',
@@ -203,7 +215,7 @@ export function getConversationApiBinding(message, component, selectedSource) {
       : message.phase === 'executing' ? 'ExecutionMessage' : 'ProgressMessage';
   }
   if (component === 'QuestionMessage') {
-    if (message.phase === 'answered') bindingKey = 'StatusMessage';
+    if (message.phase === 'answered') bindingKey = 'AnsweredQuestionMessage';
     else if (message.variant === 'single-select') bindingKey = 'SingleSelectMessage';
     else if (message.variant === 'multi-select') bindingKey = 'MultiSelectMessage';
     else if (message.variant === 'form') bindingKey = 'FormMessage';

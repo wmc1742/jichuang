@@ -39,7 +39,7 @@ id + kind + variant + phase + placement + payload
 | 独立系统回执 | `ReceiptMessage` | 不属于 Run 或追问生命周期的状态 |
 | 会话中的产物投影 | `ArtifactPresentation` | `document`、`image`、`character`、`video` |
 
-`StatusMessage` 和 `RunCompleteMessage` 是渲染状态，不是新的业务消息类型。
+`AnsweredQuestionMessage`、`StatusMessage` 和 `RunCompleteMessage` 是渲染状态，不是新的业务消息类型。其中已回答的 `QuestionMessage` 必须继续由 `AnsweredQuestionMessage` 渲染，不能降级成独立回执 `StatusMessage`。
 
 ## 状态规则
 

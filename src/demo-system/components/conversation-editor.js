@@ -18,6 +18,7 @@ const iconOptions = [
 
 const componentDefaultIcons = {
   StatusMessage: 'statusConfirmed',
+  AnsweredQuestionMessage: 'questionConfirm',
   DocumentArtifactPresentation: 'document',
   MultiSelectMessage: 'questionConfirm',
   SingleSelectMessage: 'questionConfirm',
