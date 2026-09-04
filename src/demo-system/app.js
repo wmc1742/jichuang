@@ -8,11 +8,11 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904e';
-import { media } from './data/assets.js?v=20260904e';
-import { HomeTemplate } from './templates/home.js?v=20260904e';
-import { StudioTemplate } from './templates/studio.js?v=20260904e';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904e';
+} from './scenarios/luosifen.js?v=20260904f';
+import { media } from './data/assets.js?v=20260904f';
+import { HomeTemplate } from './templates/home.js?v=20260904f';
+import { StudioTemplate } from './templates/studio.js?v=20260904f';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904f';
 import { normalizeConversationNodes } from './conversation/model.js';
 import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js';
 import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js';
@@ -353,7 +353,17 @@ function runAgentStage(runId) {
   };
   const startedAt = performance.now();
   let previousElapsed = -1;
-  let executionStarted = false;
+  const dispatchedSimulationEvents = new Set();
+  const dispatchSimulationEvent = (scheduledEvent, elapsedSeconds) => {
+    if (scheduledEvent.type !== 'tool.started' || !run.execution) return;
+    state.messages = applyConversationEvent(state.messages, {
+      type: ConversationEvent.TOOL_STARTED,
+      runId,
+      ...run.execution,
+      detail: formatLiveElapsed(elapsedSeconds),
+    });
+    render({ scrollToEnd: true });
+  };
   const tick = () => {
     if (runToken !== activeRunToken) return;
     const elapsedSeconds = Math.min(simulation.durationSeconds, Math.floor((performance.now() - startedAt) / 1000));
@@ -369,16 +379,11 @@ function runAgentStage(runId) {
       const clock = document.querySelector(`[data-editor-id="run-${runId}"] [data-role="run-elapsed"]`);
       if (clock) clock.textContent = detail;
     }
-    if (run.execution && !executionStarted && elapsedSeconds >= simulation.executionStartSecond) {
-      executionStarted = true;
-      state.messages = applyConversationEvent(state.messages, {
-        type: ConversationEvent.RUN_EXECUTING,
-        runId,
-        ...run.execution,
-        detail: formatLiveElapsed(elapsedSeconds),
-      });
-      render({ scrollToEnd: true });
-    }
+    simulation.events.forEach((scheduledEvent, index) => {
+      if (dispatchedSimulationEvents.has(index) || elapsedSeconds < scheduledEvent.atSecond) return;
+      dispatchedSimulationEvents.add(index);
+      dispatchSimulationEvent(scheduledEvent, elapsedSeconds);
+    });
     if (elapsedSeconds >= simulation.durationSeconds) completeRun();
   };
   tick();

@@ -4,7 +4,7 @@ export const ConversationEvent = Object.freeze({
   APPEND: 'conversation.node.appended',
   UPDATE: 'conversation.node.updated',
   RUN_STARTED: 'run.started',
-  RUN_EXECUTING: 'run.executing',
+  TOOL_STARTED: 'tool.started',
   RUN_TIMER_TICK: 'run.timer.tick',
   RUN_COMPLETED: 'run.completed',
   RUN_FAILED: 'run.failed',
@@ -38,15 +38,14 @@ export function applyConversationEvent(currentMessages = [], event) {
   if (event.type === ConversationEvent.UPDATE) return update(messages, event.id, event.patch);
 
   if (event.type === ConversationEvent.RUN_STARTED) {
-    const variant = event.variant || 'thinking';
     return upsert(messages, {
       id: `run-${event.runId}`,
       runId: event.runId,
       role: 'assistant',
       kind: ConversationKind.RUN,
-      variant,
-      phase: variant === 'execution' ? ConversationPhase.EXECUTING : ConversationPhase.RUNNING,
-      title: event.title || (variant === 'execution' ? '开始执行...' : '正在思考...'),
+      variant: 'thinking',
+      phase: ConversationPhase.RUNNING,
+      title: event.title || '正在思考...',
       detail: event.detail,
       thought: event.thought,
       steps: event.steps || [],
@@ -56,15 +55,15 @@ export function applyConversationEvent(currentMessages = [], event) {
     });
   }
 
-  if (event.type === ConversationEvent.RUN_EXECUTING) {
+  if (event.type === ConversationEvent.TOOL_STARTED) {
     return update(messages, `run-${event.runId}`, {
       variant: 'execution',
       phase: ConversationPhase.EXECUTING,
       title: event.title || '开始执行...',
-      detail: event.detail,
-      thought: event.thought,
-      steps: event.steps || [],
-      blocks: event.blocks || [],
+      ...(event.detail !== undefined ? { detail: event.detail } : {}),
+      ...(event.thought !== undefined ? { thought: event.thought } : {}),
+      ...(event.steps !== undefined ? { steps: event.steps } : {}),
+      ...(event.blocks !== undefined ? { blocks: event.blocks } : {}),
       expanded: true,
     });
   }

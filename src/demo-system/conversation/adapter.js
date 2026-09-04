@@ -58,7 +58,6 @@ export function toConversationRuntimeEvent(event) {
     return {
       type: ConversationEvent.RUN_STARTED,
       runId: event.run_id,
-      variant: event.mode === 'execution' ? 'execution' : 'thinking',
       title: event.label,
       detail: event.eta,
       thought: event.summary,
@@ -66,8 +65,16 @@ export function toConversationRuntimeEvent(event) {
     };
   }
 
-  if (event.type === 'run.execution.started') {
-    return { type: ConversationEvent.RUN_EXECUTING, runId: event.run_id, title: event.label, detail: event.eta, thought: event.summary };
+  if (event.type === 'tool.started' || event.type === 'skill.started' || event.type === 'run.execution.started') {
+    return {
+      type: ConversationEvent.TOOL_STARTED,
+      runId: event.run_id,
+      title: event.label,
+      detail: event.elapsed,
+      thought: event.summary,
+      steps: event.steps,
+      blocks: event.blocks,
+    };
   }
 
   if (event.type === 'run.step.updated') {

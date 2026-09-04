@@ -102,7 +102,7 @@ function ExecutionMessage(message, presentation) {
   return `
     <article class="message message--execution ${completed ? 'is-completed' : ''} ${message.expanded ? 'is-expanded' : ''}${editorClass(message)}" ${editorAttributes(message, presentation)}>
       <button class="execution-summary" type="button" ${completed ? `data-action="toggle-run" data-message-id="${escapeHtml(message.id || '')}" aria-expanded="${message.expanded ? 'true' : 'false'}"` : 'disabled'}>
-        <span>${escapeHtml(title)}</span>${message.detail ? `<small data-role="run-elapsed">${escapeHtml(message.detail)}</small>` : ''}
+        <span class="execution-summary__live"><span>${escapeHtml(title)}</span>${message.detail ? `<small data-role="run-elapsed">${escapeHtml(message.detail)}</small>` : ''}</span>
         ${completed ? `<span class="execution-summary__chevron">${Icon('chevronRight')}</span>` : ''}
       </button>
       ${showDetails ? `<div class="execution-details">${RunBlocks(message)}</div>` : ''}

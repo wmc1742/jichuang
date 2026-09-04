@@ -41,7 +41,7 @@ id + kind + variant + phase + placement + payload
 
 `AnsweredQuestionMessage`、`StatusMessage` 和 `RunCompleteMessage` 是渲染状态，不是新的业务消息类型。其中已回答的 `QuestionMessage` 必须继续由 `AnsweredQuestionMessage` 渲染，不能降级成独立回执 `StatusMessage`。
 
-演示运行中，`RunMessage` 同时保留两组时间：`simulation.durationSeconds` 控制真实等待与逐秒计时，`elapsed` 保留任务完成后的业务耗时文案。有执行阶段的 Run 通过 `simulation.executionStartSecond` 在同一计时轴上从思考切换到执行，不生成第二条 Run。
+演示运行中，`RunMessage` 同时保留两组时间：`simulation.durationSeconds` 控制真实等待与逐秒计时，`elapsed` 保留任务完成后的业务耗时文案。计时事件只更新时间，不能改变 Run 状态。有执行阶段的 Run 由 Mock 事件表在 `simulation.toolStartSecond` 发出 `tool.started`，同一个 Run 才从思考切换到执行；没有 Skill/Tool 调用的 Run 不会出现执行态。
 
 ## 状态规则
 
@@ -50,13 +50,16 @@ id + kind + variant + phase + placement + payload
 ```text
 run.started
   -> 同一 RunMessage: thinking / running
-run.execution.started（可选）
+tool.started / skill.started（可选，仅真实调用 Skill/Tool 时）
   -> 同一 RunMessage: execution / executing
 run.completed
   -> 同一 RunMessage: completed / collapsed
 ```
 
 - 完成态默认折叠为用时。
+- 思考中和执行中都显示同一条连续计时，状态切换时不清零。
+- 简单回复或追问走 `thinking -> completed -> AssistantMessage/QuestionMessage`，不经过执行态。
+- 只有生成、分析等 Skill/Tool 已经开始时，才走 `thinking -> executing -> completed -> ArtifactPresentation/AssistantMessage`。
 - 点击可展开该 Run 的思考摘要和已完成步骤。
 - “思考中”和“思考完成”不能作为两条相邻消息同时存在。
 - 执行步骤按 `step.id` 原位从 running 更新为 completed 或 failed。

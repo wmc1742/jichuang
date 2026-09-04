@@ -9,13 +9,16 @@ function positiveInteger(value, fallback) {
 export function getRunSimulationPlan(run = {}) {
   const fallbackDuration = /m|minute|分/.test(run.elapsed || '') ? DEFAULT_LONG_SECONDS : DEFAULT_SHORT_SECONDS;
   const durationSeconds = positiveInteger(run.simulation?.durationSeconds, fallbackDuration);
-  if (!run.execution) return { durationSeconds, executionStartSecond: null };
+  if (!run.execution) return { durationSeconds, events: [] };
 
   const fallbackStart = Math.max(1, Math.floor(durationSeconds * 0.35));
-  const requestedStart = positiveInteger(run.simulation?.executionStartSecond, fallbackStart);
+  const requestedStart = positiveInteger(run.simulation?.toolStartSecond, fallbackStart);
   return {
     durationSeconds,
-    executionStartSecond: Math.min(requestedStart, Math.max(1, durationSeconds - 1)),
+    events: [{
+      type: 'tool.started',
+      atSecond: Math.min(requestedStart, Math.max(1, durationSeconds - 1)),
+    }],
   };
 }
 

@@ -70,7 +70,7 @@ const completed = (id, label) => ({ id, label, phase: 'completed' });
 export const scenarioRuns = Object.freeze({
   1: { thinking: { title: '正在思考···' }, simulation: { durationSeconds: 5 }, elapsed: '用时5s', outputIds: ['campaign-question-copy', 'campaign-selection'] },
   2: {
-    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, executionStartSecond: 4 }, elapsed: '用时3m20s',
+    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, toolStartSecond: 4 }, elapsed: '用时3m20s',
     execution: {
       title: '开始执行···', detail: '1m30s',
       thought: '根据双11节点和春节/年货节期间大促活动的特点不同，消费者心理特征也有所差异，所以视频突出的内容也应该有所侧重，接下来我会先深入分析成片诉求。',
@@ -80,7 +80,7 @@ export const scenarioRuns = Object.freeze({
     outputIds: ['requirements-summary', 'requirements-presentation'],
   },
   3: {
-    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, executionStartSecond: 3 }, elapsed: '用时4m12s',
+    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, toolStartSecond: 3 }, elapsed: '用时4m12s',
     execution: {
       title: '开始执行···', detail: '1m30s',
       thought: '好的，这份需求分析看来是比较准确的。接下来我会根据需求分析中的内容，先出几个创意分镜，这样可以进一步直观的校准最终的视频。',
@@ -95,7 +95,7 @@ export const scenarioRuns = Object.freeze({
     outputIds: ['storyboard-summary', 'storyboard-presentation'],
   },
   4: {
-    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, executionStartSecond: 4 }, elapsed: '用时1m2s',
+    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, toolStartSecond: 4 }, elapsed: '用时1m2s',
     execution: {
       title: '开始执行···', detail: '30s', thought: '没问题，现在的主角形象确实有些老气，我生成几个年轻的面孔。',
       steps: [{ id: 'characters', label: '正在生成商品图', phase: 'running' }],
@@ -105,7 +105,7 @@ export const scenarioRuns = Object.freeze({
   },
   5: { thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10 }, elapsed: '用时12s', outputIds: ['character-confirm-copy', 'character-confirmation'] },
   6: {
-    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, executionStartSecond: 4 }, elapsed: '用时20s',
+    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, toolStartSecond: 4 }, elapsed: '用时20s',
     execution: {
       title: '开始执行···', detail: '1m30s',
       steps: [{ id: 'character-update', label: '正在重新优化主角', phase: 'running' }],
@@ -115,7 +115,7 @@ export const scenarioRuns = Object.freeze({
   },
   7: { thinking: { title: '正在思考···' }, simulation: { durationSeconds: 5 }, elapsed: '用时5s', outputIds: ['video-suggestion', 'video-confirmation'] },
   8: {
-    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, executionStartSecond: 3 }, elapsed: '用时9m12s',
+    thinking: { title: '正在思考···' }, simulation: { durationSeconds: 10, toolStartSecond: 3 }, elapsed: '用时9m12s',
     execution: {
       title: '开始执行···', detail: '1m30s',
       blocks: [
