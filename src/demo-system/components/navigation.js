@@ -32,12 +32,12 @@ export function TaskSidebar({ activeTask = 'existing' } = {}) {
     </aside>`;
 }
 
-export function ConversationHeader({ projectMenuOpen = false, title = '即创螺蛳粉' }) {
+export function ConversationHeader({ projectMenuOpen = false, title = '即创螺蛳粉', editorEnabled = false }) {
   return `
     <header class="conversation-header">
       <div class="project-menu-anchor">
         <button class="project-title" data-action="toggle-project-menu" aria-expanded="${projectMenuOpen ? 'true' : 'false'}"><span>${title}</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
-        ${projectMenuOpen ? `<div class="project-menu" role="menu"><button data-action="share-task">分享任务</button><button data-action="open-conversation-settings">设置</button><button data-action="delete-task">删除</button></div>` : ''}
+        ${projectMenuOpen ? `<div class="project-menu" role="menu"><button data-action="share-task">分享任务</button>${editorEnabled ? '' : '<button data-action="enter-editor">编辑组件</button>'}<button data-action="open-conversation-settings">设置</button><button data-action="delete-task">删除</button></div>` : ''}
       </div>
       <button class="generated-content-button" data-action="open-artifact-list">${Icon('workbench')}<span>查看生成内容</span></button>
     </header>`;

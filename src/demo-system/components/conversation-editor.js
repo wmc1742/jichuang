@@ -5,6 +5,7 @@ import { resolveConversationPresentation } from '../conversation/component-regis
 const iconOptions = [
   { value: 'none', label: '无图标' },
   { value: 'statusConfirmed', label: '确认状态' },
+  { value: 'questionConfirm', label: '追问确认' },
   { value: 'selectionForm', label: '选择/表单' },
   { value: 'thinkingComplete', label: '思考完成' },
   { value: 'thinkingProgress', label: '思考中' },
@@ -18,6 +19,10 @@ const iconOptions = [
 const componentDefaultIcons = {
   StatusMessage: 'statusConfirmed',
   DocumentArtifactPresentation: 'document',
+  MultiSelectMessage: 'questionConfirm',
+  SingleSelectMessage: 'questionConfirm',
+  FormMessage: 'questionConfirm',
+  ConfirmationMessage: 'questionConfirm',
 };
 
 function IconPicker(message, renderer) {
@@ -98,7 +103,7 @@ export function ConversationEditor(state) {
   const editor = state.editor;
   const selected = state.messages.find((message) => message.id === editor.selectedId) || null;
   const currentOverride = selected ? editor.config.instances?.[selected.id] : null;
-  const statusText = editor.saveState === 'saving' ? '正在写入源码' : editor.saveState === 'error' ? '写入失败' : '源码已同步';
+  const statusText = editor.saveState === 'saving' ? '正在写入源码' : editor.saveState === 'error' ? '写入失败' : editor.saveState === 'local' ? '已保存到当前浏览器' : '源码已同步';
   const presentation = selected ? resolveConversationPresentation(selected) : null;
 
   return `
@@ -124,7 +129,7 @@ export function ConversationEditor(state) {
             <label class="editor-field editor-field--number"><span>消息间距</span><div><input name="editor-message-gap" data-editor-token="messageGap" type="number" min="0" max="48" value="${Number(editor.config.tokens?.messageGap ?? 12)}"><em>px</em></div></label>
           </div>
           <footer class="editor-actions">
-            <button class="editor-button editor-button--primary" data-action="editor-save">保存到源码</button>
+            <button class="editor-button editor-button--primary" data-action="editor-save">${editor.localOnly ? '应用到当前预览' : '保存到源码'}</button>
             <button class="editor-button" data-action="editor-reset" ${currentOverride ? '' : 'disabled'}>重置实例</button>
             <button class="editor-button" data-action="editor-undo" ${editor.history.length ? '' : 'disabled'}>撤销</button>
             <button class="editor-button editor-button--danger" data-action="editor-delete">删除实例</button>

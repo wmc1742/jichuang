@@ -8,11 +8,11 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904b';
-import { media } from './data/assets.js?v=20260904b';
-import { HomeTemplate } from './templates/home.js?v=20260904b';
-import { StudioTemplate } from './templates/studio.js?v=20260904b';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904b';
+} from './scenarios/luosifen.js?v=20260904c';
+import { media } from './data/assets.js?v=20260904c';
+import { HomeTemplate } from './templates/home.js?v=20260904c';
+import { StudioTemplate } from './templates/studio.js?v=20260904c';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904c';
 import { normalizeConversationNodes } from './conversation/model.js';
 import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js';
 
@@ -26,16 +26,32 @@ const newTaskView = viewMode === 'new';
 const snapshotMode = editorMode || urlParams.get('snapshot') === '1' || stageMode === 'complete';
 const interactiveConversationEntry = viewMode === 'conversation' && !snapshotMode;
 const STUDIO_STORAGE_KEY = 'aic-agent-component-settings-v1';
+const EDITOR_PREVIEW_STORAGE_KEY = 'aic-agent-conversation-overrides-v1';
 const EDITOR_CONFIG_URL = './src/demo-system/editor/conversation-overrides.json';
+const staticEditorPreview = window.location.hostname.endsWith('.github.io') || window.location.protocol === 'file:';
+
+function loadPreviewConversationConfig() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(EDITOR_PREVIEW_STORAGE_KEY) || '{}');
+    return { instances: saved.instances || {}, tokens: saved.tokens || {} };
+  } catch {
+    return { instances: {}, tokens: {} };
+  }
+}
 
 async function loadConversationConfig() {
   try {
     const response = await fetch(`${EDITOR_CONFIG_URL}?v=${Date.now()}`, { cache: 'no-store' });
     if (!response.ok) throw new Error('Unable to load editor config');
     const config = await response.json();
-    return { instances: config.instances || {}, tokens: config.tokens || {} };
+    const preview = loadPreviewConversationConfig();
+    return {
+      instances: { ...(config.instances || {}), ...preview.instances },
+      tokens: { ...(config.tokens || {}), ...preview.tokens },
+    };
   } catch {
-    return { instances: {}, tokens: { messageGap: 12 } };
+    const preview = loadPreviewConversationConfig();
+    return { instances: preview.instances, tokens: { messageGap: 12, ...preview.tokens } };
   }
 }
 
@@ -171,6 +187,7 @@ const state = {
     config: initialConversationConfig,
     history: [],
     saveState: 'saved',
+    localOnly: staticEditorPreview,
   },
 };
 
@@ -363,6 +380,16 @@ async function persistConversationConfig() {
   state.editor.saveState = 'saving';
   render();
   try {
+    window.localStorage.setItem(EDITOR_PREVIEW_STORAGE_KEY, JSON.stringify(state.editor.config));
+  } catch {
+    // Preview edits still remain active for the current page session.
+  }
+  if (state.editor.localOnly) {
+    state.editor.saveState = 'local';
+    render();
+    return;
+  }
+  try {
     const response = await fetch('/__editor/conversation-overrides', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -469,6 +496,17 @@ app.addEventListener('click', async (event) => {
     state.editor.selectedId = null;
     state.editor.selectedComponent = null;
     state.editor.selectedSource = null;
+  } else if (action === 'enter-editor') {
+    const url = new URL(window.location.href);
+    url.searchParams.set('edit', '1');
+    window.history.replaceState({}, '', url);
+    state.editor.enabled = true;
+    state.editor.selectedId = null;
+    state.editor.selectedComponent = null;
+    state.editor.selectedSource = null;
+    state.editor.saveState = state.editor.localOnly ? 'local' : 'saved';
+    state.projectMenuOpen = false;
+    state.workbenchView = null;
   } else if (action === 'editor-save') {
     const form = target.closest('[data-role="conversation-editor-form"]');
     const messageId = form?.dataset.messageId;

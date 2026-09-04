@@ -130,9 +130,10 @@ function SelectionHistory(history = {}) {
 }
 
 function QuestionForm({ message, body, presentation }) {
+  const icon = message.icon === 'none' ? '' : Icon(message.icon || 'questionConfirm');
   return `
     <article class="message message--question-form${editorClass(message)}" ${editorAttributes(message, presentation)}>
-      <div class="question-state-title"><span class="question-state-icon" aria-hidden="true">${Icon('questionConfirm')}</span><span>请确认</span></div>
+      <div class="question-state-title">${icon ? `<span class="question-state-icon" aria-hidden="true">${icon}</span>` : ''}<span>请确认</span></div>
       <form class="question-form" data-message-id="${escapeHtml(message.id || '')}" onsubmit="return false">
         <div class="question-form__prompt">${escapeHtml(message.prompt || '请确认以下信息')}</div>
         <div class="question-form__controls">${body}</div>
@@ -172,9 +173,10 @@ function FormMessage(message, presentation) {
 
 function ConfirmationMessage(message, presentation) {
   const credit = message.credit ? `<span class="confirmation-credit">${Icon('credit')}<b>${escapeHtml(message.credit)}</b></span>` : '';
+  const icon = message.icon === 'none' ? '' : Icon(message.icon || 'questionConfirm');
   return `
     <article class="message message--confirmation${editorClass(message)}" ${editorAttributes(message, presentation)}>
-      <div class="question-state-title"><span class="question-state-icon" aria-hidden="true">${Icon('questionConfirm')}</span><span>请确认</span></div>
+      <div class="question-state-title">${icon ? `<span class="question-state-icon" aria-hidden="true">${icon}</span>` : ''}<span>请确认</span></div>
       <div class="confirmation-card">
         <p>${escapeHtml(message.prompt || '')}</p>
         <div class="confirmation-card__actions">

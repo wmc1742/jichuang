@@ -1,6 +1,6 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904b';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260904c';
 import { Composer } from '../components/composer.js';
-import { MessageFeed } from '../components/messages.js?v=20260904b';
+import { MessageFeed } from '../components/messages.js?v=20260904c';
 import { icons, media } from '../data/assets.js';
 import { project } from '../scenarios/luosifen.js';
 import { Button, Icon, IconButton, escapeHtml } from '../ui/primitives.js';
