@@ -41,6 +41,8 @@ id + kind + variant + phase + placement + payload
 
 `AnsweredQuestionMessage`、`StatusMessage` 和 `RunCompleteMessage` 是渲染状态，不是新的业务消息类型。其中已回答的 `QuestionMessage` 必须继续由 `AnsweredQuestionMessage` 渲染，不能降级成独立回执 `StatusMessage`。
 
+演示运行中，`RunMessage` 同时保留两组时间：`simulation.durationSeconds` 控制真实等待与逐秒计时，`elapsed` 保留任务完成后的业务耗时文案。有执行阶段的 Run 通过 `simulation.executionStartSecond` 在同一计时轴上从思考切换到执行，不生成第二条 Run。
+
 ## 状态规则
 
 ### Run

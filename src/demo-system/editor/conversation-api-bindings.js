@@ -39,18 +39,18 @@ const bindings = {
     sample: { type: 'interaction.required', interaction_id: 'int_01', mode: 'questions', questions: ['...'] },
   },
   ProgressMessage: {
-    controller: 'runAgentStage() → progress',
+    controller: 'runAgentStage() → run.timer.tick',
     transport: 'SSE',
     endpoint: streamEndpoint,
-    event: 'run.thinking.delta',
+    event: 'run.thinking.delta / run.timer.tick',
     trigger: 'Agent 进入思考或工具执行阶段',
     fields: [
       ['title', 'event.label', '缺省为“正在思考...”'],
       ['thought', 'event.summary', '展示可公开的思考摘要'],
-      ['detail', 'event.eta_ms', '格式化为预计时长'],
+      ['detail', 'event.elapsed_ms', '演示运行时按真实时间逐秒更新'],
       ['state', 'event.status', 'thinking / tool_running'],
     ],
-    sample: { type: 'run.thinking.delta', status: 'thinking', label: '正在思考...', summary: '正在梳理大促节点', eta_ms: 10000 },
+    sample: { type: 'run.timer.tick', status: 'thinking', label: '正在思考...', summary: '正在梳理大促节点', elapsed_ms: 4000 },
   },
   RunCompleteMessage: {
     controller: 'applyConversationEvent() → run.completed',
@@ -73,6 +73,7 @@ const bindings = {
     fields: [
       ['title', 'event.label', '执行中的主状态文案'],
       ['steps', 'event.steps[]', '按 step_id 原位更新 running / completed / failed'],
+      ['detail', 'event.elapsed_ms', '思考与执行共用同一计时轴'],
       ['phase', 'event.status', 'executing / completed / failed'],
       ['expanded', 'view state', '执行中展开，完成后默认收起'],
     ],

@@ -8,13 +8,14 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260904d';
-import { media } from './data/assets.js?v=20260904d';
-import { HomeTemplate } from './templates/home.js?v=20260904d';
-import { StudioTemplate } from './templates/studio.js?v=20260904d';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260904d';
+} from './scenarios/luosifen.js?v=20260904e';
+import { media } from './data/assets.js?v=20260904e';
+import { HomeTemplate } from './templates/home.js?v=20260904e';
+import { StudioTemplate } from './templates/studio.js?v=20260904e';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260904e';
 import { normalizeConversationNodes } from './conversation/model.js';
 import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js';
+import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -193,6 +194,17 @@ const state = {
 
 const app = document.querySelector('#app');
 let studioInputTimer;
+let activeRunTimer = null;
+let activeRunOutputTimer = null;
+let activeRunToken = 0;
+
+function cancelActiveRun() {
+  activeRunToken += 1;
+  window.clearInterval(activeRunTimer);
+  window.clearTimeout(activeRunOutputTimer);
+  activeRunTimer = null;
+  activeRunOutputTimer = null;
+}
 
 function setViewMode(view) {
   const url = new URL(window.location.href);
@@ -240,6 +252,7 @@ function syncDraft() {
 }
 
 function openExistingTask() {
+  cancelActiveRun();
   setViewMode('conversation');
   Object.assign(state, {
     page: 'workspace',
@@ -253,11 +266,13 @@ function openExistingTask() {
     settingsOpen: false,
     draft: '',
     attachment: null,
+    busy: false,
   });
   render({ keepScroll: false });
 }
 
 function openNewTask() {
+  cancelActiveRun();
   setViewMode('new');
   Object.assign(state, {
     page: 'workspace',
@@ -276,6 +291,7 @@ function openNewTask() {
 }
 
 function startScenario() {
+  cancelActiveRun();
   setViewMode('conversation');
   const request = state.draft.trim() || '根据 即创螺蛳粉 这个商品为我生成用于大促推广的视频';
   const firstMessage = { ...scenarioMessages[0], text: request.includes('即创螺蛳粉') ? scenarioMessages[0].text : request, attachment: state.attachment || project.product };
@@ -297,18 +313,24 @@ function startScenario() {
 function runAgentStage(runId) {
   const run = scenarioRuns[runId];
   if (!run) return;
+  cancelActiveRun();
+  const runToken = activeRunToken;
+  const simulation = getRunSimulationPlan(run);
   const progress = run.thinking;
   state.messages = applyConversationEvent(state.messages, {
     type: ConversationEvent.RUN_STARTED,
     runId,
     variant: 'thinking',
     title: '正在思考···',
+    detail: formatLiveElapsed(0),
     ...progress,
     editorSource: `scenarioRuns.${runId}.thinking`,
   });
   state.busy = true;
   render({ scrollToEnd: true });
   const completeRun = () => {
+    window.clearInterval(activeRunTimer);
+    activeRunTimer = null;
     state.messages = applyConversationEvent(state.messages, {
       type: ConversationEvent.RUN_COMPLETED,
       runId,
@@ -317,29 +339,50 @@ function runAgentStage(runId) {
       blocks: run.execution?.completedBlocks,
     });
     render({ scrollToEnd: true });
-    window.setTimeout(() => {
+    activeRunOutputTimer = window.setTimeout(() => {
+      if (runToken !== activeRunToken) return;
       state.messages = appendConversationNodes(
         state.messages,
         applyConversationConfig(run.outputIds.map(getScenarioMessage).filter(Boolean), state.editor.config),
       );
       state.scenarioStage = runId;
       state.busy = false;
+      activeRunOutputTimer = null;
       render({ scrollToEnd: true });
     }, 520);
   };
-  window.setTimeout(() => {
-    if (!run.execution) {
-      completeRun();
-      return;
+  const startedAt = performance.now();
+  let previousElapsed = -1;
+  let executionStarted = false;
+  const tick = () => {
+    if (runToken !== activeRunToken) return;
+    const elapsedSeconds = Math.min(simulation.durationSeconds, Math.floor((performance.now() - startedAt) / 1000));
+    if (elapsedSeconds !== previousElapsed) {
+      const detail = formatLiveElapsed(elapsedSeconds);
+      previousElapsed = elapsedSeconds;
+      state.messages = applyConversationEvent(state.messages, {
+        type: ConversationEvent.RUN_TIMER_TICK,
+        runId,
+        elapsedSeconds,
+        detail,
+      });
+      const clock = document.querySelector(`[data-editor-id="run-${runId}"] [data-role="run-elapsed"]`);
+      if (clock) clock.textContent = detail;
     }
-    state.messages = applyConversationEvent(state.messages, {
-      type: ConversationEvent.RUN_EXECUTING,
-      runId,
-      ...run.execution,
-    });
-    render({ scrollToEnd: true });
-    window.setTimeout(completeRun, 1600);
-  }, 1200);
+    if (run.execution && !executionStarted && elapsedSeconds >= simulation.executionStartSecond) {
+      executionStarted = true;
+      state.messages = applyConversationEvent(state.messages, {
+        type: ConversationEvent.RUN_EXECUTING,
+        runId,
+        ...run.execution,
+        detail: formatLiveElapsed(elapsedSeconds),
+      });
+      render({ scrollToEnd: true });
+    }
+    if (elapsedSeconds >= simulation.durationSeconds) completeRun();
+  };
+  tick();
+  activeRunTimer = window.setInterval(tick, 200);
 }
 
 function advanceScenario(text, interactionId = null) {
@@ -571,6 +614,7 @@ app.addEventListener('click', async (event) => {
   } else if (state.page === 'studio') {
     return;
   } else if (action === 'home') {
+    cancelActiveRun();
     setViewMode('home');
     Object.assign(state, { page: 'home', workbenchView: null, messages: [], draft: '', attachment: null, busy: false });
   } else if (action === 'new-task') {

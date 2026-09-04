@@ -52,11 +52,16 @@ function StatusMessage(message, presentation) {
 
 function ProgressMessage(message, presentation) {
   const icon = message.icon && message.icon !== 'none' ? `<span class="progress-indicator" aria-hidden="true">${Icon(message.icon)}</span>` : '';
+  const label = `${message.title || '正在思考'}`.replace(/[.·…]+$/u, '');
   return `
     <article class="message message--progress${editorClass(message)}" ${editorAttributes(message, presentation)}>
       <div class="progress-head">
         ${icon}
-        <span class="progress-copy">${escapeHtml(message.title || '正在思考···')}${message.detail ? ` <small>${escapeHtml(message.detail)}</small>` : ''}</span>
+        <span class="progress-copy">
+          <span class="progress-copy__label">${escapeHtml(label)}</span>
+          <span class="progress-copy__dots" aria-hidden="true"><i></i><i></i><i></i></span>
+          ${message.detail ? `<small class="progress-elapsed" data-role="run-elapsed">${escapeHtml(message.detail)}</small>` : ''}
+        </span>
       </div>
       ${message.thought ? `<p class="progress-thought">${escapeHtml(message.thought)}</p>` : ''}
     </article>`;
@@ -97,7 +102,7 @@ function ExecutionMessage(message, presentation) {
   return `
     <article class="message message--execution ${completed ? 'is-completed' : ''} ${message.expanded ? 'is-expanded' : ''}${editorClass(message)}" ${editorAttributes(message, presentation)}>
       <button class="execution-summary" type="button" ${completed ? `data-action="toggle-run" data-message-id="${escapeHtml(message.id || '')}" aria-expanded="${message.expanded ? 'true' : 'false'}"` : 'disabled'}>
-        <span>${escapeHtml(title)}</span>${message.detail ? `<small>${escapeHtml(message.detail)}</small>` : ''}
+        <span>${escapeHtml(title)}</span>${message.detail ? `<small data-role="run-elapsed">${escapeHtml(message.detail)}</small>` : ''}
         ${completed ? `<span class="execution-summary__chevron">${Icon('chevronRight')}</span>` : ''}
       </button>
       ${showDetails ? `<div class="execution-details">${RunBlocks(message)}</div>` : ''}

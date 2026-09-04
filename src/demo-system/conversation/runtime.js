@@ -5,6 +5,7 @@ export const ConversationEvent = Object.freeze({
   UPDATE: 'conversation.node.updated',
   RUN_STARTED: 'run.started',
   RUN_EXECUTING: 'run.executing',
+  RUN_TIMER_TICK: 'run.timer.tick',
   RUN_COMPLETED: 'run.completed',
   RUN_FAILED: 'run.failed',
   STEP_UPDATED: 'run.step.updated',
@@ -65,6 +66,13 @@ export function applyConversationEvent(currentMessages = [], event) {
       steps: event.steps || [],
       blocks: event.blocks || [],
       expanded: true,
+    });
+  }
+
+  if (event.type === ConversationEvent.RUN_TIMER_TICK) {
+    return update(messages, `run-${event.runId}`, {
+      detail: event.detail,
+      runtimeElapsedSeconds: event.elapsedSeconds,
     });
   }
 
