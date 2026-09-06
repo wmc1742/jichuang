@@ -1,4 +1,4 @@
-import { icons } from '../data/assets.js';
+import { icons } from '../data/assets.js?v=20260906a';
 
 export function escapeHtml(value = '') {
   return String(value)
@@ -24,5 +24,5 @@ export function Button({ label, action, icon = null, variant = 'secondary', clas
 }
 
 export function ProductAttachment(product, removable = false) {
-  return `<span class="product-attachment"><img src="${product.thumbnail}" alt=""><span>${escapeHtml(product.title)}</span>${removable ? '<button data-action="clear-attachment" aria-label="移除附件">×</button>' : ''}</span>`;
+  return `<span class="product-attachment">${product.type === 'document' ? Icon('document') : `<img src="${escapeHtml(product.thumbnail)}" alt="">`}<span>${escapeHtml(product.title)}</span>${removable ? '<button data-action="clear-attachment" aria-label="移除附件">×</button>' : ''}</span>`;
 }

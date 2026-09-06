@@ -1,4 +1,4 @@
-import { Icon, IconButton } from '../ui/primitives.js';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906a';
 
 export function ProductHeader() {
   return `
@@ -15,19 +15,18 @@ export function ProductRail({ active = 'home' } = {}) {
     </nav>`;
 }
 
-export function TaskSidebar({ activeTask = 'existing' } = {}) {
+export function TaskSidebar({ activeTask = 'existing', tasks = [], taskId, sidebarCollapsed = false, compactMobile = false, mobileTasksOpen = false } = {}) {
   const isNewTask = activeTask === 'new';
   return `
-    <aside class="task-sidebar">
+    <aside class="task-sidebar ${mobileTasksOpen ? 'mobile-tasks-open' : ''}">
       <div class="task-sidebar__head">
-        <button class="brand-lockup" data-action="home" aria-label="返回首页">${Icon('logoMark')} ${Icon('logoWord')}</button>
+        <button class="brand-lockup" data-action="${sidebarCollapsed || compactMobile ? 'toggle-sidebar' : 'home'}" aria-label="${sidebarCollapsed || compactMobile ? '展开或收起任务管理' : '返回首页'}">${Icon('logoMark')} ${Icon('logoWord')}</button>
         ${IconButton({ icon: 'collapse', label: '收起任务管理', action: 'toggle-sidebar', className: 'sidebar-collapse' })}
       </div>
-      <button class="new-task ${isNewTask ? 'is-active' : ''}" data-action="new-task"><span class="new-task__icon"></span><span>新建项目</span></button>
+      <button class="new-task ${isNewTask ? 'is-active' : ''}" data-action="new-task" aria-label="新建项目">${Icon('newTask')}<span>新建项目</span></button>
       <section class="recent-tasks">
         <h2>最近</h2>
-        <button class="recent-task ${activeTask === 'existing' ? 'is-active' : ''}" data-action="open-task">即创螺蛳粉</button>
-        <button class="recent-task" data-action="noop">即创减脂蛋白棒</button>
+        ${tasks.filter((task) => task.taskMode !== 'new').map((task) => `<button class="recent-task ${task.taskId === taskId ? 'is-active' : ''}" data-action="open-task" data-task="${escapeHtml(task.taskId)}" title="${escapeHtml(task.projectTitle)}">${escapeHtml(task.projectTitle)}</button>`).join('')}
       </section>
     </aside>`;
 }
@@ -36,22 +35,22 @@ export function ConversationHeader({ projectMenuOpen = false, title = '即创螺
   return `
     <header class="conversation-header">
       <div class="project-menu-anchor">
-        <button class="project-title" data-action="toggle-project-menu" aria-expanded="${projectMenuOpen ? 'true' : 'false'}"><span>${title}</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
-        ${projectMenuOpen ? `<div class="project-menu" role="menu"><button data-action="share-task">分享任务</button>${editorEnabled ? '' : '<button data-action="enter-editor">编辑组件</button>'}<button data-action="open-conversation-settings">设置</button><button data-action="delete-task">删除</button></div>` : ''}
+        <button class="project-title" data-action="toggle-project-menu" aria-expanded="${projectMenuOpen ? 'true' : 'false'}"><span>${escapeHtml(title)}</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
+        ${projectMenuOpen ? `<div class="project-menu" role="menu"><button data-action="rename-task">重命名</button><button data-action="share-task">分享任务</button>${editorEnabled ? '' : '<button data-action="enter-editor">编辑组件</button>'}<button data-action="open-conversation-settings">设置</button><button data-action="delete-task">删除</button></div>` : ''}
       </div>
-      <button class="generated-content-button" data-action="open-artifact-list">${Icon('workbench')}<span>查看生成内容</span></button>
+      <button class="generated-content-button" data-action="open-artifact-list" aria-label="查看生成内容">${Icon('workbench')}<span>查看生成内容</span></button>
     </header>`;
 }
 
-export function ConversationSettingsModal() {
+export function ConversationSettingsModal(settings = { duration: 20, ratio: '9:16', watermark: true }) {
   return `
-    <div class="conversation-settings-backdrop" data-action="close-conversation-settings">
+    <div class="conversation-settings-backdrop">
       <section class="conversation-settings" role="dialog" aria-modal="true" aria-label="会话设置">
         <h2>设置</h2>
-        <div class="settings-row settings-row--duration"><div><b>视频时长</b><input type="range" min="5" max="60" value="25" aria-label="视频时长"></div><label><input type="number" value="10" min="5" max="60"><span>秒</span></label></div>
-        <div class="settings-row settings-row--ratio"><b>视频比例</b><div><button class="is-active"><i></i>9:16</button><button><i></i>16:9</button></div></div>
-        <div class="settings-row settings-row--watermark"><div><b>去水印</b><span>将“AI生成”的标识水印从生成内容上去除</span></div><label class="settings-switch"><input type="checkbox" checked><i></i></label></div>
-        <footer><button data-action="close-conversation-settings">取消</button><button class="is-primary" data-action="close-conversation-settings">确认</button></footer>
+        <div class="settings-row settings-row--duration"><div><b>视频时长</b><input data-setting="duration" type="range" min="5" max="60" value="${settings.duration}" aria-label="视频时长"></div><label><input data-setting="duration" type="number" value="${settings.duration}" min="5" max="60" aria-label="视频时长秒数"><span>秒</span></label></div>
+        <div class="settings-row settings-row--ratio"><b>视频比例</b><div>${['9:16', '16:9'].map((ratio) => `<label><input type="radio" name="ratio" value="${ratio}" ${settings.ratio === ratio ? 'checked' : ''}>${ratio}</label>`).join('')}</div></div>
+        <div class="settings-row settings-row--watermark"><div><b>保留 AI 生成标识</b></div><label class="settings-switch"><input name="watermark" type="checkbox" ${settings.watermark ? 'checked' : ''}><i></i></label></div>
+        <footer><button data-action="close-conversation-settings">取消</button><button class="is-primary" data-action="save-settings">确认</button></footer>
       </section>
     </div>`;
 }

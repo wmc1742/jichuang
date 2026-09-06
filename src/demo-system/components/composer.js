@@ -1,4 +1,4 @@
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906a';
 
 function ComposerEntry({ newTask, draft, attachment }) {
   const attachmentTitle = attachment?.title || '';
@@ -28,7 +28,7 @@ export function Composer({ home = false, newTask = false, draft = '', attachment
         <div class="composer-confirmation__head">
           <span>${escapeHtml(confirmation.prompt || '是否确认并继续？')}</span>
           <div>
-            <button class="confirmation-action confirmation-action--cancel" data-action="${confirmation.cancelAction || 'cancel-confirmation'}">${escapeHtml(confirmation.cancelLabel || '取消')}</button>
+            <button class="confirmation-action confirmation-action--cancel" data-interaction="${escapeHtml(confirmation.id || '')}" data-action="${confirmation.cancelAction || 'cancel-confirmation'}">${escapeHtml(confirmation.cancelLabel || '取消')}</button>
             <button class="confirmation-action confirmation-action--confirm" data-action="${confirmation.confirmAction || 'confirm-choice'}" data-interaction="${escapeHtml(confirmation.id || '')}">${escapeHtml(confirmation.confirmLabel || '确认')}</button>
           </div>
         </div>` : ''}
@@ -39,12 +39,12 @@ export function Composer({ home = false, newTask = false, draft = '', attachment
         <div class="composer__toolbar">
           <div class="composer__tools">
             ${conversation
-              ? `<button class="composer-tool" data-action="select-product" aria-label="添加素材">${Icon('material')}</button>`
-              : `<button class="composer-tool" data-action="select-product" aria-label="上传商品">${Icon('product')}</button><button class="composer-tool" data-action="select-product" aria-label="添加素材">${Icon('material')}</button><button class="composer-tool" data-action="open-settings" aria-label="设置">${Icon('settings')}</button>`}
+              ? `<button class="composer-tool" data-action="open-upload" aria-label="添加素材">${Icon('material')}</button>`
+              : `<button class="composer-tool" data-action="select-product" aria-label="上传商品">${Icon('product')}</button><button class="composer-tool" data-action="open-upload" aria-label="添加素材">${Icon('material')}</button><button class="composer-tool" data-action="open-skills" aria-label="选择技能">${Icon('credit')}</button><button class="composer-tool" data-action="open-settings" aria-label="设置">${Icon('settings')}</button>`}
           </div>
           <div class="composer__submit">
             <span class="credits">${Icon('credit')}<b>0</b></span>
-            <button class="send-button" data-action="send-message" aria-label="发送" ${busy || (conversation && !draft.trim()) ? 'disabled' : ''}>${Icon('send')}</button>
+            <button class="send-button" data-action="${busy ? 'stop-run' : 'send-message'}" aria-label="${busy ? '停止生成' : '发送'}" ${!busy && !draft.trim() ? 'disabled' : ''}>${busy ? '<span class="stop-symbol"></span>' : Icon('send')}</button>
           </div>
         </div>
       </div>

@@ -349,7 +349,7 @@ img { display: block; }
   height: 42px;
   transform: translateX(-50%);
 }
-.new-task-skill-track { display: flex; gap: 8px; min-width: 0; overflow: hidden; scroll-behavior: smooth; scrollbar-width: none; }
+.new-task-skill-track { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; min-width: 0; overflow: visible; }
 .new-task-skill-track::-webkit-scrollbar { display: none; }
 .new-task-skill,
 .skill-rail-arrow {
@@ -360,7 +360,7 @@ img { display: block; }
   background: rgba(128, 103, 255, .18);
   backdrop-filter: blur(2px);
 }
-.new-task-skill { display: flex; align-items: center; justify-content: space-between; width: 160px; padding: 10px 16px; border-radius: 24px; }
+.new-task-skill { display: flex; align-items: center; gap: 8px; justify-content: space-between; width: auto; min-width: 150px; padding: 5px 12px 5px 6px; border-radius: 16px; }
 .new-task-skill:hover,
 .skill-rail-arrow:hover { background: rgba(128, 103, 255, .3); }
 .new-task-skill i { width: 8px; height: 8px; transform: rotate(45deg); border-top: 1px solid #fff; border-right: 1px solid #fff; }

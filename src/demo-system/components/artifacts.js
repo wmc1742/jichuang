@@ -1,4 +1,5 @@
-import { media } from '../data/assets.js';
+import { media } from '../data/assets.js?v=20260906a';
+import { artifactContent } from '../artifacts/content.js?v=20260906a';
 import {
   ArtifactType,
   ArtifactView,
@@ -7,8 +8,8 @@ import {
   createArtifactWorkspace,
   generatedArtifactTypes,
   getArtifactType,
-} from '../artifacts/model.js';
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js';
+} from '../artifacts/model.js?v=20260906a';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906a';
 
 function workspaceState(state) {
   if (state.artifactWorkspace) return state.artifactWorkspace;
@@ -93,6 +94,7 @@ function TypeCollection(state, type) {
 }
 
 function ArtifactOverview(state, workspace) {
+  if (!state.artifacts.length) return '<div class="artifact-empty">生成的内容将在这里展示</div>';
   const listMode = workspace.rootMode === ArtifactView.LIST;
   return `<section class="artifact-overview">
     <div class="artifact-overview__toolbar">
@@ -114,40 +116,16 @@ function DetailTitle(artifact, actions = '') {
 }
 
 function SubjectCard({ image, kind, name, voice = false, drill = false }) {
-  return `<button class="artifact-subject-card" ${drill ? 'data-action="drill-artifact" data-target="actor"' : ''}>
+  return `<${drill ? 'button' : 'div'} class="artifact-subject-card" ${drill ? 'data-action="drill-artifact" data-target="actor"' : ''}>
     <span class="artifact-subject-card__media"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}">${voice ? `<i>${Icon('play')}</i>` : ''}</span>
     <small>${escapeHtml(kind)}</small><b>${escapeHtml(name)}</b>
-  </button>`;
+  </${drill ? 'button' : 'div'}>`;
 }
 
-function StoryboardDocument({ editing = false } = {}) {
-  return `<article class="artifact-document ${editing ? 'is-editing' : ''}">
-    <section>
-      <h2>创意概述</h2>
-      ${editing
-        ? '<textarea aria-label="创意概述">视频以小个子女生冬季穿搭困境开场，对比普通长款外套显矮与银灰短外套显高的效果。动态演示袖子脱卸变马甲、半袖的多穿场景，最后强调7天无理由退货的保障，引导点击购买。</textarea>'
-        : '<p class="artifact-document__intro">视频以小个子女生冬季穿搭困境开场，对比普通长款外套显矮与银灰短外套显高的效果。动态演示袖子脱卸变马甲、半袖的多穿场景，特写羊羔绒质感及90%灰鹅绒填充细节，最后强调7天无理由退货的保障，引导点击购买。</p>'}
-      <button class="artifact-text-link">查看完整创意 <span>›</span></button>
-    </section>
-    <section>
-      <h2>分镜脚本</h2>
-      <h3>1&nbsp;&nbsp;主体设定</h3>
-      <div class="artifact-subject-grid">
-        ${SubjectCard({ image: media.productSquare, kind: '商品', name: '即创螺蛳粉' })}
-        ${SubjectCard({ image: media.conversationActors[0], kind: '主角', name: '张楚', drill: true })}
-        ${SubjectCard({ image: media.conversationActors[1], kind: '配角', name: '姜楠', drill: true })}
-        ${SubjectCard({ image: media.conversationActors[2], kind: '旁白', name: '中性女声', voice: true })}
-      </div>
-    </section>
-    <section>
-      <h3>2&nbsp;&nbsp;分镜描述</h3>
-      <p>• 镜头1：猎奇开场+夸张演绎，制造悬念和趣味性。</p>
-      <div class="storyboard-table">
-        <header><span>台词台词</span><span>画面描述</span></header>
-        <div><span><i>主角：张楚</i>“姐你这抽屉，你这柜子里这么乱，咋回事啊？”<i>配角：姜楠</i>“你俩的柜子？”</span><span><b>前景：</b>家政大姐正费力地拉开一个被堵塞的抽屉，她回头看向镜头，表情惊讶。<br><b>中景：</b>人物快速进入画面，形成生活化冲突。</span></div>
-      </div>
-    </section>
-  </article>`;
+function StoryboardDocument({ editing = false, artifact } = {}) {
+  const content = artifact.content;
+  const subjects = artifact.id.startsWith('requirements') ? '' : `<section><h2>主体设定</h2><div class="artifact-subject-grid">${SubjectCard({ image: artifact.productImage, kind: '商品', name: artifact.productName })}${SubjectCard({ image: artifact.actor.previewUrl, kind: '主角', name: artifact.actor.title, drill: editing })}</div></section>`;
+  return `<article class="artifact-document ${editing ? 'is-editing' : ''}"><section><h2>${artifact.id.startsWith('requirements') ? '需求概述' : '创意概述'}</h2>${editing ? `<textarea data-artifact-field="content.intro" aria-label="创意概述">${escapeHtml(content.intro)}</textarea>` : `<p>${escapeHtml(content.intro)}</p>`}</section>${subjects}<section><h2>${artifact.id.startsWith('requirements') ? '成片要求' : '分镜脚本'}</h2>${editing ? `<textarea class="document-body-editor" data-artifact-field="content.body" aria-label="文稿正文">${escapeHtml(content.body)}</textarea>` : `<p class="document-body-copy">${escapeHtml(content.body)}</p>`}</section>${artifact.feedback?.length ? `<section><h2>修改意见</h2>${artifact.feedback.map((item) => `<p>${escapeHtml(item.text)}</p>`).join('')}</section>` : ''}</article>`;
 }
 
 function DocumentDetail(artifact, editing = false) {
@@ -155,13 +133,13 @@ function DocumentDetail(artifact, editing = false) {
   const actions = editing
     ? `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`
     : `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`;
-  return `<div class="artifact-detail artifact-detail--document">${DetailTitle(title, actions)}<div class="artifact-detail-scroll">${StoryboardDocument({ editing })}</div></div>`;
+  return `<div class="artifact-detail artifact-detail--document">${DetailTitle(title, actions)}<div class="artifact-detail-scroll">${StoryboardDocument({ editing, artifact })}${artifact.revision > 1 ? `<small class="artifact-revision">版本 ${artifact.revision} · ${escapeHtml(artifact.updatedAt || '')}</small>` : ''}</div></div>`;
 }
 
 function VideoDetail(artifact, workspace) {
   return `<div class="artifact-detail artifact-detail--video">
     ${DetailTitle(artifact, `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`)}
-    <button class="artifact-video-stage ${workspace.playing ? 'is-playing' : ''}" data-action="toggle-play"><img src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><span>${Icon('play')}</span><i>播放中</i></button>
+    <video class="artifact-video-stage" controls playsinline preload="metadata" poster="${escapeHtml(artifact.previewUrl)}" src="${escapeHtml(artifact.mediaUrl || 'assets/demo/luosifen-sample.mp4')}"></video>
   </div>`;
 }
 
@@ -169,16 +147,18 @@ function ImageDetail(artifact) {
   return `<div class="artifact-detail artifact-detail--image">${DetailTitle(artifact, DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' }))}<img class="artifact-image-stage" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"></div>`;
 }
 
-function VideoEditor(artifact, preview = false) {
-  const frames = artifact.clips?.length ? artifact.clips : media.conversationProductsAll;
+function VideoEditor(artifact, preview = false, activeScene = 0) {
+  const scenes = artifact.scenes;
+  const index = Math.min(activeScene, scenes.length - 1);
+  const frames = scenes.map((scene) => scene.image);
   return `<div class="artifact-detail artifact-detail--video-editor">
     <div class="artifact-editor-head"><button data-action="cancel-artifact-edit">‹&nbsp; 返回</button><div>${preview ? DetailAction({ label: '≈100 生成成片', action: 'generate-preview-video', primary: true }) : `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`}</div></div>
     <div class="video-editor-layout">
-      <div class="video-editor-player"><img src="${escapeHtml(artifact.previewUrl)}" alt=""><span>${Icon('play')}</span></div>
-      <section class="video-editor-controls"><h2>画面1</h2><div class="video-editor-scene-tabs"><button>＋<small>新增视频</small></button><button class="is-active"><em>AI</em><img src="${escapeHtml(frames[0])}" alt=""></button></div><div class="video-editor-prompt"><h3>编辑描述</h3><textarea>前3秒：中景镜头，初始静止状态下五个精致的白色小瓷碗分别盛放着五种原料，整齐排列；镜头开始缓慢推进，保持画面稳定无动态，传递天然健康高级的氛围。</textarea><footer><b>参考主体：</b>${media.conversationActors.slice(0, 2).map((src) => `<img src="${src}" alt="">`).join('')}<button>＋</button><span>输入@可引用参考主体</span></footer></div></section>
+      <div class="video-editor-player"><img src="${escapeHtml(frames[index])}" alt="画面${index + 1}"></div>
+      <section class="video-editor-controls"><h2>画面${index + 1}</h2><div class="video-editor-scene-tabs"><button data-action="add-scene" aria-label="新增画面">${Icon('material')}</button><button class="is-active" data-action="select-scene" data-index="${index}"><em>AI</em><img src="${escapeHtml(frames[index])}" alt=""></button></div><div class="video-editor-prompt"><h3>编辑描述</h3><textarea data-artifact-field="scenes.${index}.text" aria-label="画面描述">${escapeHtml(scenes[index].text)}</textarea></div></section>
     </div>
-    <div class="video-editor-timeline"><span>▶</span><span>◼</span><b>00:04</b><small>/00:55</small><div class="video-editor-tools"><button>智能包装</button></div></div>
-    <div class="video-editor-frames">${frames.slice(0, 8).map((src, index) => `<button class="${index === 0 ? 'is-active' : ''}"><img src="${escapeHtml(src)}" alt="画面${index + 1}"></button>`).join('')}</div>
+    <div class="video-editor-timeline"><span>画面 ${index + 1} / ${frames.length}</span><div class="video-editor-tools"><button data-action="package-video" aria-pressed="${Boolean(artifact.packaging)}">${artifact.packaging ? '已启用智能包装' : '智能包装'}</button></div></div>
+    <div class="video-editor-frames">${frames.map((src, frameIndex) => `<button data-action="select-scene" data-index="${frameIndex}" class="${frameIndex === index ? 'is-active' : ''}"><img src="${escapeHtml(src)}" alt="画面${frameIndex + 1}"></button>`).join('')}</div>
   </div>`;
 }
 
@@ -186,12 +166,12 @@ function ActorDetail(artifact, editing = false, embedded = false) {
   const actions = editing
     ? `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`
     : `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`;
-  return `<div class="artifact-detail artifact-detail--actor">${embedded ? '' : DetailTitle(artifact, actions)}<div class="actor-detail-layout"><img class="actor-detail-hero" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><div class="actor-detail-copy"><div class="actor-variants">${media.conversationActors.slice(0, 5).map((src, index) => `<button class="${index === 0 ? 'is-active' : ''}"><img src="${src}" alt="候选形象${index + 1}"></button>`).join('')}</div><section><header><h2>形象描述</h2><span>保存至演员库　编辑</span></header>${editing ? '<textarea>年轻女性，热爱美食，喜欢分享的年轻女性，妆容自然，笑容亲切有感染力。</textarea>' : '<p>年轻女性，热爱美食，喜欢分享的年轻女性，妆容自然，笑容亲切有感染力。在不同场景下，会穿着符合场景的服装。</p>'}</section><button class="actor-voice">${Icon('play')}带货口播</button><section><header><h2>音色描述</h2><span>编辑</span></header><p>20-30岁青年女性，音色温润明亮，热情真诚有感染力，语速较快。</p></section></div></div></div>`;
+  return `<div class="artifact-detail artifact-detail--actor">${embedded ? '' : DetailTitle(artifact, actions)}<div class="actor-detail-layout"><img class="actor-detail-hero" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><div class="actor-detail-copy">${editing ? `<div class="actor-variants">${media.conversationActors.slice(0, 5).map((src, index) => `<button data-action="choose-actor-variant" data-index="${index}" class="${src === artifact.previewUrl ? 'is-active' : ''}"><img src="${src}" alt="候选形象${index + 1}"></button>`).join('')}</div>` : ''}<section><header><h2>形象描述</h2></header>${editing ? `<textarea data-artifact-field="description" aria-label="形象描述">${escapeHtml(artifact.description)}</textarea>` : `<p>${escapeHtml(artifact.description)}</p>`}</section><button class="actor-voice" data-action="preview-voice">${Icon('play')}试听口播</button><section><header><h2>音色描述</h2></header>${editing ? `<textarea data-artifact-field="voice" aria-label="音色描述">${escapeHtml(artifact.voice)}</textarea>` : `<p>${escapeHtml(artifact.voice)}</p>`}</section></div></div></div>`;
 }
 
 function DrillEditor(artifact) {
-  const actor = { ...artifact, title: '张楚', previewUrl: media.conversationActors[0] };
-  return `<div class="artifact-detail artifact-detail--drill"><div class="artifact-editor-head"><button data-action="back-from-artifact-drill">‹&nbsp; 返回</button><div>${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}</div></div>${ActorDetail(actor, true, true)}</div>`;
+  const actor = artifact.actor;
+  return `<div class="artifact-detail artifact-detail--drill"><div class="artifact-editor-head"><button data-action="back-from-artifact-drill">‹&nbsp; 返回</button><div>${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}</div></div>${ActorDetail(actor, true, true).replaceAll('data-artifact-field="', 'data-artifact-field="actor.')}</div>`;
 }
 
 function LoadingDetail() {
@@ -200,19 +180,21 @@ function LoadingDetail() {
 
 function ArtifactContent(state, workspace) {
   if (workspace.loadingArtifactId) return LoadingDetail();
-  const artifact = artifactById(state.artifacts, workspace.activeTabId);
+  const original = artifactById(state.artifacts, workspace.activeTabId);
+  const draftVisible = [ArtifactView.EDIT, ArtifactView.DRILL].includes(workspace.activeView) || original?.type === ArtifactType.PREVIEW;
+  const artifact = original ? artifactContent(draftVisible && state.artifactDraft?.id === original.id ? state.artifactDraft : original, state) : null;
   if (!artifact || [ArtifactView.CATEGORY, ArtifactView.LIST].includes(workspace.activeView)) return ArtifactOverview(state, workspace);
   if (workspace.activeView === ArtifactView.DRILL) return DrillEditor(artifact);
   const type = getArtifactType(artifact.type).id;
   if (workspace.activeView === ArtifactView.EDIT) {
     if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, true);
-    if (type === ArtifactType.VIDEO) return VideoEditor(artifact);
+    if (type === ArtifactType.VIDEO || type === ArtifactType.PREVIEW) return VideoEditor(artifact, type === ArtifactType.PREVIEW, state.activeScene || 0);
     if (type === ArtifactType.ACTOR) return ActorDetail(artifact, true);
   }
   if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact);
   if (type === ArtifactType.VIDEO) return VideoDetail(artifact, workspace);
   if (type === ArtifactType.IMAGE) return ImageDetail(artifact);
-  if (type === ArtifactType.PREVIEW) return VideoEditor(artifact, true);
+  if (type === ArtifactType.PREVIEW) return VideoEditor(artifact, true, state.activeScene || 0);
   return ActorDetail(artifact);
 }
 

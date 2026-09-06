@@ -1,6 +1,6 @@
-import { Icon, escapeHtml } from '../ui/primitives.js';
-import { getConversationApiBinding } from '../editor/conversation-api-bindings.js?v=20260904j';
-import { resolveConversationPresentation } from '../conversation/component-registry.js';
+import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906a';
+import { getConversationApiBinding } from '../editor/conversation-api-bindings.js?v=20260906a';
+import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906a';
 
 const iconOptions = [
   { value: 'none', label: '无图标' },

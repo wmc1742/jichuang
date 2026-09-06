@@ -1,0 +1,110 @@
+.new-task-skill-rail { display: block; height: auto; max-width: 840px; }
+.new-task-skill > img:not(.aic-icon) { width: 30px; height: 30px; object-fit: cover; border-radius: 10px; }
+.new-task-skill > .aic-icon { width: 14px; height: 14px; }
+.skill-choice { position: relative; }
+.skill-preview { display: none; position: absolute; z-index: 20; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); width: 220px; padding: 12px; border-radius: 12px; background: #ece6ff; color: #282330; box-shadow: 0 8px 32px #0006; }
+.skill-preview > img { width: 100%; height: 126px; object-fit: cover; border-radius: 6px; }
+.skill-preview p { font-size: 12px; line-height: 20px; }
+.skill-choice:hover .skill-preview, .skill-choice:focus-within .skill-preview { display: block; }
+.selected-skill { position: absolute; z-index: 2; top: 260px; left: max(42px, calc(50% - 472px)); display: flex; gap: 8px; padding: 5px 10px; border-radius: 8px; background: #302638; }
+.selected-skill button { padding: 0; background: transparent; }
+.new-task-stage:has(.selected-skill) .composer--new-task { top: 310px; }
+.new-task-stage:has(.selected-skill) .new-task-skill-rail { top: 474px; }
+.recent-task { display: block; }
+.new-task > .aic-icon { width: 20px; height: 20px; flex-shrink: 0; }
+.task-dialog--product { width: min(1024px, 100%); min-height: min(710px, calc(100dvh - 48px)); display: flex; flex-direction: column; }
+.task-dialog--product footer { margin-top: auto; padding-top: 24px; }
+.task-dialog--product .product-library { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.task-sidebar { overflow-y: auto; }
+.task-sidebar__head { flex-shrink: 0; }
+.project-menu-anchor { min-width: 0; }
+.project-title { max-width: 100%; }
+.project-title > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.generated-content-button { flex-shrink: 0; }
+.stop-symbol { display: block; width: 12px; height: 12px; border-radius: 2px; background: white; }
+.task-dialog-backdrop { position: fixed; z-index: 90; inset: 0; display: grid; place-items: center; padding: 24px; background: #0008; }
+.task-dialog { position: relative; width: min(700px, 100%); max-height: calc(100dvh - 48px); overflow: auto; padding: 24px; border: 1px solid #ffffff14; border-radius: 16px; background: #252229; box-shadow: 0 24px 80px #0006; }
+.task-dialog h2 { margin: 0 40px 20px 0; font-size: 20px; }
+.task-dialog p { line-height: 24px; color: #bbb6c6; }
+.dialog-close { position: absolute; top: 16px; right: 16px; width: 28px; height: 28px; background: transparent; font-size: 24px; }
+.task-dialog input:not([type=checkbox]), .task-dialog textarea { width: 100%; padding: 12px; border: 1px solid #ffffff20; border-radius: 8px; color: #fff; background: #1c1921; }
+.task-dialog textarea { min-height: 150px; resize: vertical; }
+.task-dialog footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.task-dialog footer button { padding: 10px 24px; border-radius: 8px; background: #ffffff12; }
+.task-dialog .is-primary { color: #fff; background: #7440e8; }
+.task-dialog .is-danger { color: #fff; background: #ad3650; }
+.task-dialog button:disabled { opacity: .35; cursor: not-allowed; }
+.dialog-tabs { display: flex; gap: 24px; margin-bottom: 20px; }
+.dialog-tabs button, .dialog-tabs label { padding: 8px 0; border-bottom: 2px solid transparent; color: #bab5c5; background: transparent; cursor: pointer; }
+.dialog-tabs .is-active { color: #fff; border-color: #9671ff; }
+.product-library { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 20px; }
+.product-library-item { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 6px; background: transparent; border: 1px solid transparent; border-radius: 8px; text-align: left; }
+.product-library-item.is-active { border-color: #9671ff; }
+.product-library-item > img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+.product-library-item > span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.product-library-item > input { position: absolute; top: 12px; right: 12px; accent-color: #7440e8; pointer-events: none; }
+.skill-library { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
+.skill-library > button { display: grid; grid-template-columns: 64px 1fr; gap: 8px; padding: 12px; border: 1px solid #ffffff12; border-radius: 8px; background: #ffffff06; text-align: left; }
+.skill-library img { grid-row: span 2; width: 64px; height: 64px; border-radius: 6px; object-fit: cover; }
+.skill-library span { font-size: 12px; line-height: 18px; color: #bab5c5; }
+.upload-choices { display: flex; flex-direction: column; gap: 8px; }
+.upload-choices label, .upload-choices button { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 8px; background: #ffffff08; cursor: pointer; }
+.upload-choices img { width: 20px; height: 20px; }
+.task-dialog [hidden] { display: none; }
+.demo-notice { position: fixed; z-index: 120; top: 20px; left: 50%; max-width: calc(100vw - 40px); transform: translateX(-50%); padding: 12px 20px; border: 1px solid #ffffff20; border-radius: 8px; background: #302b39; box-shadow: 0 8px 30px #0006; line-height: 22px; }
+.resume-run { position: fixed; z-index: 25; bottom: 162px; left: 50%; transform: translateX(-50%); }
+.resume-run button { padding: 8px 16px; border: 1px solid #9d79ff; border-radius: 8px; background: #302044; }
+.shared-task-banner { position: fixed; z-index: 50; left: 50%; top: 8px; transform: translateX(-50%); padding: 6px 12px; border-radius: 8px; background: #302638; font-size: 12px; }
+.shared-task-banner button { margin-left: 12px; padding: 4px 8px; border-radius: 4px; background: #7440e8; }
+.document-body-copy { white-space: pre-wrap; }
+.document-body-editor { min-height: 300px; }
+.artifact-revision { display: block; margin-top: 20px; color: #918a9e; font-size: 12px; }
+video.artifact-video-stage { display: block; width: min(100%, 420px); height: auto; max-height: calc(100dvh - 180px); aspect-ratio: 9/16; margin: 16px auto; background: #000; object-fit: contain; }
+.video-editor-frames { display: flex; overflow-x: auto; }
+.video-editor-frames button { flex: 0 0 84px; }
+.video-editor-layout { min-height: 0; }
+.video-editor-player { min-height: 280px; aspect-ratio: 9/16; }
+.video-editor-player > img { object-fit: contain; }
+.artifact-detail-title h1 { overflow-wrap: anywhere; }
+.settings-row--ratio label { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 760px) {
+  .agent-shell, .agent-shell.has-workbench, .agent-shell.is-editing { --agent-sidebar: 52px; grid-template-columns: 52px minmax(0, 1fr); }
+  .task-sidebar { padding: 16px 6px; }
+  .task-sidebar .brand-lockup .aic-icon:last-child, .task-sidebar .new-task span:last-child, .task-sidebar .recent-tasks, .task-sidebar .sidebar-collapse { display: none; }
+  .task-sidebar__head { justify-content: center; }
+  .task-sidebar .brand-lockup .aic-icon:first-child { width: 30px; }
+  .new-task { justify-content: center; }
+  .new-task-stage { padding: 110px 16px 32px; height: auto; min-height: 100%; }
+  .new-task-pane { overflow-y: auto; }
+  .new-task-stage h1 { position: relative; top: auto; left: auto; transform: none; width: 100%; padding: 0; font-size: 22px; line-height: 32px; margin-bottom: 24px; }
+  .new-task-stage .composer--new-task, .new-task-stage:has(.selected-skill) .composer--new-task { position: relative; top: auto; left: auto; transform: none; width: 100%; height: 160px; }
+  .new-task-stage .new-task-skill-rail, .new-task-stage:has(.selected-skill) .new-task-skill-rail { position: relative; top: auto; left: auto; transform: none; width: 100%; margin-top: 20px; }
+  .new-task-skill-track { gap: 8px; }
+  .new-task-skill { min-width: 0; font-size: 12px; }
+  .selected-skill { position: relative; top: auto; left: auto; width: fit-content; margin-bottom: 8px; }
+  .skill-preview { display: none !important; }
+  .conversation-column { width: 100%; max-width: 100%; padding-left: 14px; padding-right: 14px; }
+  .conversation-header { padding: 12px; gap: 8px; }
+  .generated-content-button { padding: 8px; width: 32px; min-width: 32px; }
+  .generated-content-button span { display: none; }
+  .message--user { max-width: 100%; }
+  .user-bubble { max-width: 100%; overflow-wrap: anywhere; }
+  .agent-shell.has-workbench .artifact-workbench, .conversation-editor { position: fixed; inset: 0 0 0 52px; z-index: 35; width: auto; min-width: 0; }
+  .agent-shell.is-editing .conversation-pane { min-width: 0; }
+  .artifact-detail-title { flex-wrap: wrap; gap: 12px; }
+  .artifact-detail-title > div { flex-wrap: wrap; }
+  .artifact-detail { padding: 16px; }
+  .artifact-media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .video-editor-layout, .actor-detail-layout { grid-template-columns: 1fr; }
+  .video-editor-player { max-height: 320px; }
+  .task-dialog-backdrop { padding: 12px; }
+  .task-dialog { padding: 20px; max-height: calc(100dvh - 24px); }
+  .product-library { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .task-dialog--product .product-library { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .task-sidebar.mobile-tasks-open { position: fixed; z-index: 80; inset: 0 auto 0 0; width: 220px; background: #242128; box-shadow: 20px 0 80px #0009; }
+  .task-sidebar.mobile-tasks-open .recent-tasks, .task-sidebar.mobile-tasks-open .new-task span:last-child { display: flex; }
+  .task-sidebar.mobile-tasks-open .recent-task { display: block; }
+  .skill-library { grid-template-columns: 1fr; }
+  .conversation-settings { width: calc(100vw - 32px); }
+  .resume-run { left: calc(50% + 26px); width: max-content; }
+}

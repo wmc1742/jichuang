@@ -4,7 +4,8 @@
 
 ## 在线内容
 
-- [打开即创设计 AI 交互 Demo](https://wmc1742.github.io/jichuang/?view=conversation)
+- [打开 Agent 2.0 可测试 Demo](https://wmc1742.github.io/jichuang/?view=new&v=20260906a)
+- [当前产品流程基线与能力边界](./DEMO_PRODUCT_BASELINE.md)
 - [项目上下文](./PROJECT_CONTEXT.md)
 - [会话与决策记录](./CONVERSATION_HISTORY.md)
 - [Codex 协作约定](./AGENTS.md)

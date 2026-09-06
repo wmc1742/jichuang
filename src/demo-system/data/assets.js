@@ -4,6 +4,7 @@ export const icons = {
   logoMark: `${assetRoot}/agent-2/icons/logo-mark.svg`,
   logoWord: `${assetRoot}/agent-2/icons/logo-word.svg`,
   collapse: `${assetRoot}/agent-2/icons/collapse.svg`,
+  newTask: `${assetRoot}/agent-2/icons/new-task.svg`,
   share: `${assetRoot}/agent-2/icons/share.svg`,
   artifactList: `${assetRoot}/agent-2/icons/artifact-list.svg`,
   workbench: `${assetRoot}/agent-2/icons/workbench.svg`,
