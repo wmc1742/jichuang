@@ -72,6 +72,10 @@ video.artifact-video-stage { display: block; width: min(100%, 420px); height: au
   .agent-shell .task-sidebar.mobile-tasks-open .recent-tasks, .agent-shell .task-sidebar.mobile-tasks-open .new-task span:last-child { display: flex; }
   .agent-shell .task-sidebar.mobile-tasks-open .recent-task { display: block; }
 }
+@media (min-width: 761px) and (max-width: 960px) {
+  .agent-shell.has-workbench, .agent-shell.is-editing { --agent-sidebar: 76px; grid-template-columns: 76px minmax(0, 1fr); }
+  .agent-shell.has-workbench .artifact-workbench, .agent-shell.is-editing .conversation-editor { position: fixed; z-index: 35; inset: 0 0 0 76px; width: auto; min-width: 0; }
+}
 @media (max-width: 760px) {
   .agent-shell, .agent-shell.has-workbench, .agent-shell.is-editing { --agent-sidebar: 52px; grid-template-columns: 52px minmax(0, 1fr); }
   .task-sidebar { padding: 16px 6px; }
