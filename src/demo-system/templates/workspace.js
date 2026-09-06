@@ -1,11 +1,11 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906c';
-import { Composer } from '../components/composer.js?v=20260906c';
-import { MessageFeed } from '../components/messages.js?v=20260906c';
-import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906c';
-import { ConversationEditor } from '../components/conversation-editor.js?v=20260906c';
-import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906c';
-import { SkillChoices } from '../components/task-dialogs.js?v=20260906c';
-import { escapeHtml } from '../ui/primitives.js?v=20260906c';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906d';
+import { Composer } from '../components/composer.js?v=20260906d';
+import { MessageFeed } from '../components/messages.js?v=20260906d';
+import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906d';
+import { ConversationEditor } from '../components/conversation-editor.js?v=20260906d';
+import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906d';
+import { SkillChoices } from '../components/task-dialogs.js?v=20260906d';
+import { escapeHtml } from '../ui/primitives.js?v=20260906d';
 
 function NewTaskTemplate(state) {
   return `
@@ -27,14 +27,13 @@ export function WorkspaceTemplate(state) {
   if (state.taskMode === 'new' && state.messages.length === 0) return NewTaskTemplate(state);
   const editorOpen = Boolean(state.editor?.enabled);
   const workbenchOpen = !editorOpen && Boolean(state.artifactWorkspace?.open);
-  const workbenchMaximized = workbenchOpen && Boolean(state.artifactWorkspace?.maximized);
   const confirmation = getActiveComposerQuestion(state.messages);
   const feedMessages = getFeedMessages(state.messages);
   return `
-    <div class="agent-shell ${workbenchOpen ? 'has-workbench' : ''} ${workbenchMaximized ? 'workbench-maximized' : ''} ${editorOpen ? 'is-editing' : ''} ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
+    <div class="agent-shell ${workbenchOpen ? 'has-workbench' : ''} ${editorOpen ? 'is-editing' : ''} ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
       ${TaskSidebar({ ...state, activeTask: 'existing' })}
       <section class="conversation-pane ${confirmation ? 'has-confirmation' : ''}">
-        ${ConversationHeader({ projectMenuOpen: state.projectMenuOpen, title: state.projectTitle, editorEnabled: editorOpen })}
+        ${ConversationHeader({ projectMenuOpen: state.projectMenuOpen, title: state.projectTitle, editorEnabled: editorOpen, workbenchOpen })}
         <main class="conversation-scroll" data-role="conversation-scroll"><div class="conversation-column">${MessageFeed({ messages: feedMessages, artifacts: state.artifacts, busy: state.busy })}</div></main>
         <div class="conversation-composer ${confirmation ? 'has-confirmation' : ''}"><div class="conversation-column">${Composer({ draft: state.draft, attachment: state.attachment, input: state.input, busy: state.busy, confirmation })}</div></div>
       </section>

@@ -1,6 +1,6 @@
-import { media } from '../data/assets.js?v=20260906c';
-import { createDocumentFixture } from '../scenarios/documents.js?v=20260906c';
-import { migrateDocument } from './document.js?v=20260906c';
+import { media } from '../data/assets.js?v=20260906d';
+import { createDocumentFixture } from '../scenarios/documents.js?v=20260906d';
+import { migrateDocument } from './document.js?v=20260906d';
 
 export function artifactContent(artifact, state = {}) {
   const product = state.product?.title || '即创螺蛳粉';
@@ -11,6 +11,13 @@ export function artifactContent(artifact, state = {}) {
     content: artifact.content ? migrateDocument(artifact.content)
       : artifact.documentTemplate ? createDocumentFixture(artifact.documentTemplate, { product, campaigns, duration: state.settings?.duration || 20, ratio: state.settings?.ratio || '9:16' })
         : { version: 1, blocks: [] },
+  };
+  if (artifact.type === 'actor') return {
+    ...artifact,
+    description: artifact.description ?? '生活化美食分享者，表情自然、动作放松，适合展示备餐和试吃场景。',
+    voice: artifact.voice ?? '自然、清晰、有亲和力的中文口播，语速适中。',
+    previewUrl: artifact.previewUrl || media.conversationActors[0],
+    appearanceOptions: artifact.appearanceOptions || [...new Set([artifact.previewUrl, ...media.conversationActors].filter(Boolean))].map((previewUrl, index) => ({ id: `appearance-${index}`, previewUrl })),
   };
   const scenes = [
     { image: media.product, text: '0-3秒：热气升起的螺蛳粉特写，筷子提起米粉。字幕：大促囤点好吃的。' },

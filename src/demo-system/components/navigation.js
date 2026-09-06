@@ -1,4 +1,4 @@
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906c';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906d';
 
 export function ProductHeader() {
   return `
@@ -31,14 +31,14 @@ export function TaskSidebar({ activeTask = 'existing', tasks = [], taskId, sideb
     </aside>`;
 }
 
-export function ConversationHeader({ projectMenuOpen = false, title = '即创螺蛳粉', editorEnabled = false }) {
+export function ConversationHeader({ projectMenuOpen = false, title = '即创螺蛳粉', editorEnabled = false, workbenchOpen = false }) {
   return `
     <header class="conversation-header">
       <div class="project-menu-anchor">
         <button class="project-title" data-action="toggle-project-menu" aria-expanded="${projectMenuOpen ? 'true' : 'false'}"><span>${escapeHtml(title)}</span><i aria-hidden="true"><b></b><b></b><b></b></i></button>
         ${projectMenuOpen ? `<div class="project-menu" role="menu"><button data-action="rename-task">重命名</button><button data-action="share-task">分享任务</button>${editorEnabled ? '' : '<button data-action="enter-editor">编辑组件</button>'}<button data-action="open-conversation-settings">设置</button><button data-action="delete-task">删除</button></div>` : ''}
       </div>
-      <button class="generated-content-button" data-action="open-artifact-list" aria-label="查看生成内容">${Icon('workbench')}<span>查看生成内容</span></button>
+      ${workbenchOpen ? '' : `<button class="generated-content-button" data-action="open-artifact-list" aria-label="查看生成内容">${Icon('artifactFolder')}<span>查看生成内容</span></button>`}
     </header>`;
 }
 

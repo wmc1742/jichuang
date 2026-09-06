@@ -1,6 +1,6 @@
-import { createArtifactWorkspace } from '../artifacts/model.js?v=20260906c';
-import { migrateInput } from '../composer/model.js?v=20260906c';
-import { phasesAfterRun } from '../scenarios/decisions.js?v=20260906c';
+import { createArtifactWorkspace } from '../artifacts/model.js?v=20260906d';
+import { migrateInput } from '../composer/model.js?v=20260906d';
+import { phasesAfterRun } from '../scenarios/decisions.js?v=20260906d';
 
 export const TASK_STORAGE_KEY = 'agent2-tasks-v1';
 const fields = ['taskId', 'projectTitle', 'taskMode', 'messages', 'artifacts', 'scenarioStage', 'workflow', 'pendingRunSpec', 'draft', 'input', 'request', 'attachment', 'product', 'settings', 'artifactWorkspace', 'pendingRun', 'selectedSkill', 'artifactDraft', 'selectedActorIndex', 'questionDrafts'];

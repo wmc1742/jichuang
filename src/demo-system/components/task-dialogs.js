@@ -1,7 +1,7 @@
-import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906c';
-import { media } from '../data/assets.js?v=20260906c';
-import { skills } from '../scenarios/skills.js?v=20260906c';
-export { skills } from '../scenarios/skills.js?v=20260906c';
+import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906d';
+import { media } from '../data/assets.js?v=20260906d';
+import { skills } from '../scenarios/skills.js?v=20260906d';
+export { skills } from '../scenarios/skills.js?v=20260906d';
 
 export function SkillChoices() {
   return `<div class="new-task-skill-track">${skills.map((skill) => `<div class="skill-choice"><button class="new-task-skill" data-action="choose-skill" data-skill="${skill.name}"><img src="${skill.image}" alt=""><span>${skill.name}</span>${Icon('send')}</button><div class="skill-preview"><img src="${skill.image}" alt=""><b>${skill.name}</b><p>${skill.description}</p></div></div>`).join('')}</div>`;

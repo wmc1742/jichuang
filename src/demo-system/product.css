@@ -139,6 +139,8 @@ video.artifact-video-stage { display: block; width: min(100%, 420px); height: au
   .artifact-detail { padding: 16px; }
   .artifact-media-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .video-editor-layout, .actor-detail-layout { grid-template-columns: 1fr; }
+  .actor-detail-hero { max-width: 230px; justify-self: center; }
+  .artifact-detail--drill > .artifact-editor-head { position: sticky; z-index: 2; top: 0; background: #242128; }
   .video-editor-player { max-height: 320px; }
   .task-dialog-backdrop { padding: 12px; }
   .task-dialog { padding: 20px; max-height: calc(100dvh - 24px); }

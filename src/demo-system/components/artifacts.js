@@ -1,6 +1,6 @@
-import { media } from '../data/assets.js?v=20260906c';
-import { StructuredDocument } from './document-blocks.js?v=20260906c';
-import { artifactContent } from '../artifacts/content.js?v=20260906c';
+import { media } from '../data/assets.js?v=20260906d';
+import { StructuredDocument } from './document-blocks.js?v=20260906d';
+import { artifactContent } from '../artifacts/content.js?v=20260906d';
 import {
   ArtifactType,
   ArtifactView,
@@ -9,8 +9,8 @@ import {
   createArtifactWorkspace,
   generatedArtifactTypes,
   getArtifactType,
-} from '../artifacts/model.js?v=20260906c';
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906c';
+} from '../artifacts/model.js?v=20260906d';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906d';
 
 function workspaceState(state) {
   if (state.artifactWorkspace) return state.artifactWorkspace;
@@ -30,7 +30,7 @@ function ArtifactTabs(state, workspace) {
   return `
     <nav class="artifact-tabs" aria-label="已打开的产物">
       <button class="artifact-root-tab ${rootActive ? 'is-active' : ''} ${workspace.openTabs.length ? 'is-compact' : ''}" data-action="artifact-root" title="生成内容">
-        ${Icon('artifactList')}<span>生成内容</span>
+        ${Icon('artifactFolder')}<span>生成内容</span>
       </button>
       ${workspace.openTabs.map((id) => {
         const artifact = artifactById(artifacts, id);
@@ -49,7 +49,6 @@ function ArtifactHeader(state, workspace) {
     <header class="workbench-header">
       ${ArtifactTabs(state, workspace)}
       <div class="workbench-actions">
-        ${IconButton({ icon: 'artifactList', label: workspace.maximized ? '恢复分栏' : '最大化产物窗口', action: 'toggle-workbench-size', className: workspace.maximized ? 'is-active' : '' })}
         ${IconButton({ icon: 'workbench', label: '收起产物窗口', action: 'close-workbench' })}
       </div>
     </header>`;
@@ -150,16 +149,27 @@ function VideoEditor(artifact, preview = false, activeScene = 0) {
   </div>`;
 }
 
-function ActorDetail(artifact, editing = false, embedded = false) {
+function ActorDetail(artifact, editing = false, embedded = false, editingField = null) {
   const actions = editing
     ? `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`
-    : `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`;
-  return `<div class="artifact-detail artifact-detail--actor">${embedded ? '' : DetailTitle(artifact, actions)}<div class="actor-detail-layout"><img class="actor-detail-hero" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><div class="actor-detail-copy">${editing ? `<div class="actor-variants">${media.conversationActors.slice(0, 5).map((src, index) => `<button data-action="choose-actor-variant" data-index="${index}" class="${src === artifact.previewUrl ? 'is-active' : ''}"><img src="${src}" alt="候选形象${index + 1}"></button>`).join('')}</div>` : ''}<section><header><h2>形象描述</h2></header>${editing ? `<textarea data-artifact-field="description" aria-label="形象描述">${escapeHtml(artifact.description)}</textarea>` : `<p>${escapeHtml(artifact.description)}</p>`}</section><button class="actor-voice" data-action="preview-voice">${Icon('play')}试听口播</button><section><header><h2>音色描述</h2></header>${editing ? `<textarea data-artifact-field="voice" aria-label="音色描述">${escapeHtml(artifact.voice)}</textarea>` : `<p>${escapeHtml(artifact.voice)}</p>`}</section></div></div></div>`;
+    : DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' });
+  const panel = (field, title) => `<section class="actor-description actor-description--${field}">
+    <header><h2>${title}</h2><div class="actor-description-actions">${field === 'description' ? `<button data-action="save-actor-library">${Icon('actorSave')}保存至演员库</button>` : ''}<button data-action="edit-actor-field" data-field="${field}" aria-label="编辑${title}" aria-pressed="${editingField === field}">${Icon('actorEdit')}编辑</button></div></header>
+    ${editing && editingField === field ? `<textarea data-artifact-field="${embedded ? 'actor.' : ''}${field}" aria-label="${title}">${escapeHtml(artifact[field])}</textarea>` : `<p>${escapeHtml(artifact[field])}</p>`}
+  </section>`;
+  return `<div class="artifact-detail artifact-detail--actor" data-source-node="1184:124561">${embedded ? '' : DetailTitle(artifact, actions)}
+    <div class="actor-detail-layout"><img class="actor-detail-hero" src="${escapeHtml(artifact.previewUrl)}" alt="${escapeHtml(artifact.title)}"><div class="actor-detail-copy">
+      <div class="actor-settings-group"><div class="actor-variants" aria-label="形象选择">
+        <label class="actor-variant-add" title="添加形象">${Icon('material')}<input type="file" accept="image/*" data-upload="actor-variant" aria-label="添加形象"></label>
+        ${(artifact.appearanceOptions || []).map((option, index) => `<button data-action="choose-actor-variant" data-index="${index}" aria-label="选择形象${index + 1}" aria-pressed="${option.previewUrl === artifact.previewUrl}" class="${option.previewUrl === artifact.previewUrl ? 'is-active' : ''}"><img src="${escapeHtml(option.previewUrl)}" alt="形象${index + 1}"></button>`).join('')}
+      </div>${panel('description', '形象描述')}</div>
+      <div class="actor-settings-group"><button class="actor-voice" data-action="preview-voice" aria-label="试听带货口播">${Icon('actorVoice')}带货口播</button>${panel('voice', '音色描述')}</div>
+    </div></div></div>`;
 }
 
-function DrillEditor(artifact) {
-  const actor = artifact.actor;
-  return `<div class="artifact-detail artifact-detail--drill"><div class="artifact-editor-head"><button data-action="back-from-artifact-drill">‹&nbsp; 返回</button><div>${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}</div></div>${ActorDetail(actor, true, true).replaceAll('data-artifact-field="', 'data-artifact-field="actor.')}</div>`;
+function DrillEditor(artifact, editingField) {
+  const actor = artifactContent({ ...artifact.actor, type: ArtifactType.ACTOR });
+  return `<div class="artifact-detail artifact-detail--drill"><div class="artifact-editor-head"><button data-action="back-from-artifact-drill">${Icon('chevronRight')}返回</button><div>${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}</div></div>${ActorDetail(actor, true, true, editingField)}</div>`;
 }
 
 function LoadingDetail() {
@@ -172,12 +182,12 @@ function ArtifactContent(state, workspace) {
   const draftVisible = [ArtifactView.EDIT, ArtifactView.DRILL].includes(workspace.activeView) || original?.type === ArtifactType.PREVIEW;
   const artifact = original ? artifactContent(draftVisible && state.artifactDraft?.id === original.id ? state.artifactDraft : original, state) : null;
   if (!artifact || [ArtifactView.CATEGORY, ArtifactView.LIST].includes(workspace.activeView)) return ArtifactOverview(state, workspace);
-  if (workspace.activeView === ArtifactView.DRILL) return DrillEditor(artifact);
+  if (workspace.activeView === ArtifactView.DRILL) return DrillEditor(artifact, state.actorEditingField);
   const type = getArtifactType(artifact.type).id;
   if (workspace.activeView === ArtifactView.EDIT) {
     if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, true, state);
     if (type === ArtifactType.VIDEO || type === ArtifactType.PREVIEW) return VideoEditor(artifact, type === ArtifactType.PREVIEW, state.activeScene || 0);
-    if (type === ArtifactType.ACTOR) return ActorDetail(artifact, true);
+    if (type === ArtifactType.ACTOR) return ActorDetail(artifact, true, false, state.actorEditingField);
   }
   if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, false, state);
   if (type === ArtifactType.VIDEO) return VideoDetail(artifact, workspace);
@@ -188,5 +198,6 @@ function ArtifactContent(state, workspace) {
 
 export function ArtifactWorkbench(state) {
   const workspace = workspaceState(state);
-  return `<aside class="artifact-workbench ${workspace.maximized ? 'is-maximized' : ''}">${ArtifactHeader(state, workspace)}<div class="workbench-body">${ArtifactContent(state, workspace)}</div></aside>`;
+  const viewKey = [state.taskId, workspace.activeTabId, workspace.activeView, workspace.drillTarget?.artifactId].join(':');
+  return `<aside class="artifact-workbench" data-workspace-view="${escapeHtml(viewKey)}">${ArtifactHeader(state, workspace)}<div class="workbench-body">${ArtifactContent(state, workspace)}</div></aside>`;
 }

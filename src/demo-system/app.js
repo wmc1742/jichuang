@@ -8,27 +8,28 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260906c';
-import { media } from './data/assets.js?v=20260906c';
-import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906c';
-import { TaskDialogs } from './components/task-dialogs.js?v=20260906c';
-import { ConversationSettingsModal } from './components/navigation.js?v=20260906c';
-import { escapeHtml } from './ui/primitives.js?v=20260906c';
-import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906c';
-import { artifactContent } from './artifacts/content.js?v=20260906c';
-import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906c';
-import { readStructuredEntry } from './components/composer.js?v=20260906c';
-import { Message } from './components/messages.js?v=20260906c';
-import { skillById } from './scenarios/skills.js?v=20260906c';
-import { replaceDocumentReference } from './artifacts/document.js?v=20260906c';
-import { phasesAfterRun } from './scenarios/decisions.js?v=20260906c';
-import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906c';
-import { HomeTemplate } from './templates/home.js?v=20260906c';
-import { StudioTemplate } from './templates/studio.js?v=20260906c';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260906c';
-import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906c';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906c';
-import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906c';
+} from './scenarios/luosifen.js?v=20260906d';
+import { media } from './data/assets.js?v=20260906d';
+import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906d';
+import { TaskDialogs } from './components/task-dialogs.js?v=20260906d';
+import { ConversationSettingsModal } from './components/navigation.js?v=20260906d';
+import { escapeHtml } from './ui/primitives.js?v=20260906d';
+import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906d';
+import { artifactContent } from './artifacts/content.js?v=20260906d';
+import { beginActorDrill, finishActorDrill, ensureActorDraft } from './artifacts/editing.js?v=20260906d';
+import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906d';
+import { readStructuredEntry } from './components/composer.js?v=20260906d';
+import { Message } from './components/messages.js?v=20260906d';
+import { skillById } from './scenarios/skills.js?v=20260906d';
+import { replaceDocumentReference } from './artifacts/document.js?v=20260906d';
+import { phasesAfterRun } from './scenarios/decisions.js?v=20260906d';
+import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906d';
+import { HomeTemplate } from './templates/home.js?v=20260906d';
+import { StudioTemplate } from './templates/studio.js?v=20260906d';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260906d';
+import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906d';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906d';
+import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906d';
 import {
   ArtifactView,
   artifactById,
@@ -36,7 +37,7 @@ import {
   createArtifactWorkspace,
   getArtifactType,
   openArtifactTab,
-} from './artifacts/model.js?v=20260906c';
+} from './artifacts/model.js?v=20260906d';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -302,12 +303,20 @@ function setViewMode(view) {
   window.history.replaceState({}, '', url);
 }
 
+const artifactScrollPositions = new Map();
+const artifactScrollSelectors = ['.workbench-body', '.artifact-detail-scroll', '.actor-variants', '.actor-description--description p', '.actor-description--voice p'];
+
 function render({ keepScroll = true, scrollToEnd = false } = {}) {
   state.compactMobile = window.innerWidth <= 760;
   state.compactTaskRail = state.compactMobile || (window.innerWidth < 1200 && (state.artifactWorkspace.open || state.editor.enabled));
   persistCurrentTask();
   const previous = document.querySelector('[data-role="conversation-scroll"]');
   const scrollTop = previous?.scrollTop || 0;
+  const previousWorkbench = document.querySelector('[data-workspace-view]');
+  if (previousWorkbench) artifactScrollPositions.set(previousWorkbench.dataset.workspaceView, artifactScrollSelectors.map((selector) => {
+    const element = previousWorkbench.querySelector(selector);
+    return [selector, element?.scrollTop || 0, element?.scrollLeft || 0];
+  }));
   const renderState = state.editor.enabled
     ? { ...state, messages: state.messages.map((message) => ({ ...message, editorSelected: message.id === state.editor.selectedId })) }
     : state;
@@ -318,6 +327,11 @@ function render({ keepScroll = true, scrollToEnd = false } = {}) {
     + (state.notice ? `<div class="demo-notice" role="status">${escapeHtml(state.notice)}</div>` : ''));
   const next = document.querySelector('[data-role="conversation-scroll"]');
   if (next && keepScroll) next.scrollTop = scrollToEnd ? next.scrollHeight : scrollTop;
+  const workbench = document.querySelector('[data-workspace-view]');
+  for (const [selector, top, left] of artifactScrollPositions.get(workbench?.dataset.workspaceView) || []) {
+    const element = workbench?.querySelector(selector);
+    if (element) { element.scrollTop = top; element.scrollLeft = left; }
+  }
   document.querySelectorAll('.question-form').forEach((form) => {
     const saved = state.questionDrafts?.[form.dataset.messageId];
     if (saved) form.querySelectorAll('input,select').forEach((field) => {
@@ -821,9 +835,19 @@ app.addEventListener('change', async (event) => {
     if (!file) return;
     if (file.size > 50 * 1024 * 1024 || !/^(image|video)\//.test(file.type)) { notify('请选择 50MB 以内的图片或视频'); render(); return; }
     const taskId = state.taskId;
+    const uploadKind = event.target.dataset.upload;
+    const actorDraft = uploadKind === 'actor-variant' ? ensureActorDraft(state) : null;
+    if (uploadKind === 'actor-variant' && (!actorDraft || !file.type.startsWith('image/'))) return;
     try {
       const url = await storeMedia(file);
       if (taskId !== state.taskId) return;
+      if (uploadKind === 'actor-variant') {
+        const currentDraft = state.artifactWorkspace.activeView === ArtifactView.DRILL ? state.artifactDraft?.actor : state.artifactDraft;
+        if (currentDraft !== actorDraft) return;
+        actorDraft.appearanceOptions = [...(actorDraft.appearanceOptions || []), { id: `upload-${Date.now()}`, previewUrl: url }];
+        actorDraft.previewUrl = url;
+        render(); return;
+      }
       const product = { title: file.name.replace(/\.[^.]+$/, ''), thumbnail: file.type.startsWith('image/') ? url : '', mediaUrl: url, type: event.target.dataset.upload === 'product' ? 'product' : file.type.startsWith('image/') ? 'image' : 'video' };
       if (event.target.dataset.upload === 'product') state.products.push(product);
       attachReference(product);
@@ -914,9 +938,22 @@ app.addEventListener('click', async (event) => {
   else if (action === 'add-scene' && state.artifactDraft) {
     state.artifactDraft.scenes.push({ image: state.product?.thumbnail || media.product, text: '请填写新画面的描述' });
     state.activeScene = state.artifactDraft.scenes.length - 1;
-  } else if (action === 'choose-actor-variant' && state.artifactDraft) {
-    const draft = state.artifactWorkspace.activeView === ArtifactView.DRILL ? state.artifactDraft.actor : state.artifactDraft;
-    draft.previewUrl = media.conversationActors[Number(target.dataset.index)];
+  } else if (action === 'choose-actor-variant') {
+    const draft = ensureActorDraft(state);
+    const option = draft?.appearanceOptions?.[Number(target.dataset.index)];
+    if (option) draft.previewUrl = option.previewUrl;
+  } else if (action === 'edit-actor-field') {
+    if (ensureActorDraft(state) && ['description', 'voice'].includes(target.dataset.field)) state.actorEditingField = state.actorEditingField === target.dataset.field ? null : target.dataset.field;
+  } else if (action === 'save-actor-library') {
+    const actor = state.artifactWorkspace.activeView === ArtifactView.DRILL ? state.artifactDraft?.actor : state.artifactDraft || artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
+    if (actor?.type === 'actor') {
+      try {
+        const saved = JSON.parse(localStorage.getItem('aic-agent-actor-library-v1') || '{}');
+        saved[actor.id] = structuredClone(actor);
+        localStorage.setItem('aic-agent-actor-library-v1', JSON.stringify(saved));
+        notify('已保存至此浏览器的演员库');
+      } catch { notify('保存失败，请检查浏览器存储空间'); }
+    }
   } else if (action === 'preview-voice') {
     if ('speechSynthesis' in window) { speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance('下班回家，来一碗热气腾腾的螺蛳粉。'); utterance.lang = 'zh-CN'; speechSynthesis.speak(utterance); }
     else notify('当前浏览器不支持语音试听');
@@ -1161,8 +1198,6 @@ app.addEventListener('click', async (event) => {
   } else if (action === 'close-workbench') {
     state.artifactWorkspace.open = false;
     state.artifactWorkspace.playing = false;
-  } else if (action === 'toggle-workbench-size') {
-    state.artifactWorkspace.maximized = !state.artifactWorkspace.maximized;
   } else if (action === 'artifact-root') {
     state.artifactWorkspace.activeTabId = null;
     state.artifactWorkspace.activeView = state.artifactWorkspace.rootMode;
@@ -1206,7 +1241,6 @@ app.addEventListener('click', async (event) => {
   } else if (action === 'quote-artifact') {
     const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
     if (artifact) attachReference({ artifactId: artifact.id, revisionId: artifact.revision, type: artifact.type, title: artifact.title, thumbnail: artifact.previewUrl });
-    state.artifactWorkspace.open = false;
   } else if (action === 'edit-artifact') {
     const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
     if (artifact && getArtifactType(artifact.type).canEdit) {
@@ -1215,18 +1249,22 @@ app.addEventListener('click', async (event) => {
       state.artifactWorkspace.activeView = ArtifactView.EDIT;
     }
   } else if (action === 'cancel-artifact-edit') {
+    if (state.artifactWorkspace.activeView === ArtifactView.DRILL) {
+      Object.assign(state, finishActorDrill(state));
+      render(); return;
+    }
     const current = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
     state.artifactWorkspace.activeView = current?.type === 'preview' ? state.artifactWorkspace.rootMode : ArtifactView.DETAIL;
     if (current?.type === 'preview') state.artifactWorkspace.activeTabId = null;
     state.artifactWorkspace.drillTarget = null;
     state.artifactDraft = null;
   } else if (action === 'apply-artifact-edit') {
+    if (state.artifactWorkspace.activeView === ArtifactView.DRILL) {
+      Object.assign(state, finishActorDrill(state, true));
+      render(); return;
+    }
     const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
     if (artifact) {
-      if (state.artifactWorkspace.activeView === ArtifactView.DRILL && state.artifactDraft?.actor) {
-        const actor = state.artifactDraft.actor;
-        state.artifacts = state.artifacts.map((item) => item.id === actor.id ? commitArtifactEdit(item, actor) : item);
-      }
       const updated = commitArtifactEdit(artifact, state.artifactDraft || artifact);
       state.artifacts = state.artifacts.map((item) => item.id === artifact.id ? updated : item);
       notify(`已保存版本 ${updated.revision}`);
@@ -1235,17 +1273,9 @@ app.addEventListener('click', async (event) => {
     state.artifactWorkspace.activeView = ArtifactView.DETAIL;
     state.artifactWorkspace.drillTarget = null;
   } else if (action === 'drill-artifact') {
-    if (!state.artifactDraft) {
-      const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
-      if (artifact) state.artifactDraft = structuredClone(artifactContent(artifact, state));
-    }
-    const actor = artifactById(state.artifacts, target.dataset.artifact);
-    if (actor && state.artifactDraft) state.artifactDraft.actor = structuredClone(artifactContent(actor, state));
-    state.artifactWorkspace.activeView = ArtifactView.DRILL;
-    state.artifactWorkspace.drillTarget = target.dataset.target || 'actor';
+    Object.assign(state, beginActorDrill(state, target.dataset.artifact));
   } else if (action === 'back-from-artifact-drill') {
-    state.artifactWorkspace.activeView = ArtifactView.EDIT;
-    state.artifactWorkspace.drillTarget = null;
+    Object.assign(state, finishActorDrill(state));
   } else if (action === 'generate-preview-video') {
     const source = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
     const id = `campaign-video-${Date.now()}`;

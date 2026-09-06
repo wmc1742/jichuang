@@ -1,4 +1,4 @@
-import { media } from '../data/assets.js?v=20260906c';
+import { media } from '../data/assets.js?v=20260906d';
 
 const productQuery = (text) => [{ type: 'text', text: '根据 ' }, { type: 'slot', accepts: 'product', label: '添加商品', required: true }, { type: 'text', text }];
 const materialQuery = (text) => [{ type: 'text', text: '根据 ' }, { type: 'slot', accepts: 'material', label: '添加素材', required: true }, { type: 'text', text }];

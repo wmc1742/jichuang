@@ -911,20 +911,32 @@ img { display: block; }
 .video-editor-frames button.is-active { border: 2px solid #8d56ff; opacity: 1; }
 .video-editor-frames img { width: 100%; height: 100%; object-fit: cover; }
 
-.actor-detail-layout { display: grid; grid-template-columns: minmax(220px, 36%) 1fr; gap: 16px; }
-.actor-detail-hero { width: 100%; max-height: calc(100vh - 150px); border-radius: 10px; object-fit: cover; }
-.actor-detail-copy { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.actor-variants { display: flex; gap: 8px; overflow: hidden; }
-.actor-variants button { flex: 0 0 56px; height: 56px; overflow: hidden; padding: 0; border-radius: 8px; }
-.actor-variants button.is-active { border: 2px solid #8d56ff; }
-.actor-variants img { width: 100%; height: 100%; object-fit: cover; }
-.actor-detail-copy section { padding: 12px; border-radius: 10px; background: var(--agent-white-04); color: var(--agent-lavender-65); line-height: 24px; }
-.actor-detail-copy section header { display: flex; align-items: center; justify-content: space-between; color: #fff; }
-.actor-detail-copy section h2 { margin: 0; font-size: 14px; }
-.actor-detail-copy section p { margin: 12px 0 0; }
-.actor-detail-copy section header span { font-size: 12px; }
-.actor-voice { align-self: flex-start; display: flex; align-items: center; gap: 6px; padding: 12px; border: 1px solid #8d56ff; border-radius: 10px; background: transparent; }
-.actor-voice .aic-icon { width: 18px; height: 18px; }
+.actor-detail-layout { display: grid; grid-template-columns: minmax(0, 230fr) minmax(0, 422fr); gap: 16px; }
+.actor-detail-hero { width: 100%; aspect-ratio: 230 / 406; border-radius: 12px; object-fit: cover; }
+.actor-detail-copy { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+.actor-settings-group { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.actor-variants { display: flex; align-items: center; gap: 8px; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.actor-variants button { flex: 0 0 60px; height: 60px; overflow: hidden; padding: 2px; border: 2px solid transparent; border-radius: 12px; background: transparent; }
+.actor-variants button.is-active { border-color: #7244e5; }
+.actor-variants img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 8px; }
+.actor-variant-add { position: relative; display: grid; place-items: center; flex: 0 0 56px; height: 56px; border: 1px solid var(--agent-white-10); border-radius: 12px; cursor: pointer; }
+.actor-variant-add .aic-icon { width: 20px; height: 20px; }
+.actor-variant-add input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.actor-description { min-width: 0; padding: 12px; border-radius: 12px; background: var(--agent-white-04); color: var(--agent-lavender-65); font-size: 14px; line-height: 24px; }
+.actor-description header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--agent-white-10); color: var(--agent-lavender-85); }
+.actor-description h2 { margin: 0; font-size: 14px; line-height: 20px; }
+.actor-description p { height: 100px; margin: 12px 0 0; overflow: auto; }
+.actor-description--voice p { height: 78px; }
+.actor-description-actions { display: flex; align-items: center; gap: 12px; }
+.actor-description-actions button { display: inline-flex; align-items: center; gap: 4px; padding: 0; background: transparent; font-size: 12px; line-height: 20px; white-space: nowrap; }
+.actor-description-actions .aic-icon { width: 12px; height: 12px; }
+.actor-description textarea { display: block; height: 100px; min-height: 78px; margin-top: 12px; font-size: 14px; }
+.actor-voice { align-self: flex-start; display: flex; align-items: center; justify-content: center; gap: 4px; width: 100px; height: 60px; padding: 8px; border: 2px solid #7244e5; border-radius: 12px; background: transparent; font-size: 14px; }
+.actor-voice .aic-icon { width: 16px; height: 16px; }
+.artifact-detail--drill > .artifact-editor-head { height: 28px; margin-bottom: 52px; }
+.artifact-detail--drill > .artifact-editor-head > button { display: flex; align-items: center; gap: 4px; font-size: 14px; }
+.artifact-detail--drill > .artifact-editor-head > button .aic-icon { width: 20px; height: 20px; transform: rotate(-90deg); }
+.artifact-detail--drill .artifact-detail--actor { padding: 0; }
 .artifact-loading { display: grid; place-items: center; align-content: center; gap: 12px; height: 100%; color: var(--agent-lavender-65); }
 .artifact-loading span { width: 24px; height: 24px; border: 2px solid var(--agent-white-12); border-top-color: #8d56ff; border-radius: 50%; animation: artifact-spin .7s linear infinite; }
 @keyframes artifact-spin { to { transform: rotate(360deg); } }
