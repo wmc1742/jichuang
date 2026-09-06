@@ -1,4 +1,4 @@
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906a';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906b';
 
 export function ProductHeader() {
   return `

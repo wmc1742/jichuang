@@ -1,4 +1,4 @@
-import { media } from '../data/assets.js?v=20260906a';
+import { media } from '../data/assets.js?v=20260906b';
 
 export const project = {
   id: 'luosifen-campaign',
@@ -7,11 +7,11 @@ export const project = {
 };
 
 export const scenarioArtifacts = [
-  { id: 'requirements-analysis', type: 'document', title: '即创螺蛳粉大促视频需求分析', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42', sortOrder: 10, revision: 1 },
-  { id: 'requirements-analysis-v2', type: 'document', title: '即创螺蛳粉大促视频需求分析v2.0', status: 'generated', statusLabel: '已生成', createdAt: '2月6日 17:42', sortOrder: 20, revision: 2, parentId: 'requirements-analysis' },
-  { id: 'creative-storyboard', type: 'document', title: '创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42', sortOrder: 30, revision: 1 },
-  { id: 'creative-storyboard-v2', type: 'document', title: '创意分镜v2.0', status: 'generated', statusLabel: '已生成', createdAt: '2月6日 17:42', sortOrder: 40, revision: 2, parentId: 'creative-storyboard' },
-  { id: 'creative-storyboard-actor', type: 'document', title: '增加一个配角的创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月7日 17:42', sortOrder: 50, revision: 3, parentId: 'creative-storyboard' },
+  { id: 'requirements-analysis', type: 'document', documentTemplate: 'requirements', title: '即创螺蛳粉大促视频需求分析', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42', sortOrder: 10, revision: 1 },
+  { id: 'requirements-analysis-v2', type: 'document', documentTemplate: 'requirements', title: '即创螺蛳粉大促视频需求分析v2.0', status: 'generated', statusLabel: '已生成', createdAt: '2月6日 17:42', sortOrder: 20, revision: 2, parentId: 'requirements-analysis' },
+  { id: 'creative-storyboard', type: 'document', documentTemplate: 'storyboard', dependencies: ['product-image-1', 'product-image-2'], title: '创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月5日 17:42', sortOrder: 30, revision: 1 },
+  { id: 'creative-storyboard-v2', type: 'document', documentTemplate: 'storyboard', title: '创意分镜v2.0', status: 'generated', statusLabel: '已生成', createdAt: '2月6日 17:42', sortOrder: 40, revision: 2, parentId: 'creative-storyboard' },
+  { id: 'creative-storyboard-actor', type: 'document', documentTemplate: 'storyboard', title: '增加一个配角的创意分镜', status: 'generated', statusLabel: '已生成', createdAt: '2月7日 17:42', sortOrder: 50, revision: 3, parentId: 'creative-storyboard' },
   ...media.conversationProductsAll.map((previewUrl, index) => ({
     id: `product-image-${index + 1}`, type: 'image', title: `图片${index + 1}`, status: 'generated', createdAt: '2月7日 17:42', sortOrder: index + 1, previewUrl,
   })),

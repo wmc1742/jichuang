@@ -1,15 +1,16 @@
-// The mock adapter chooses a business transition; message rendering remains event-driven.
-export function nextConversationAction({ messages, scenarioStage, pendingRun }, text) {
+import { mockDecisionRules, recognizeMockIntent } from '../scenarios/decisions.js?v=20260906b';
+import { artifactContent } from '../artifacts/content.js?v=20260906b';
+import { referencedDocumentArtifacts } from '../artifacts/document.js?v=20260906b';
+
+export function nextConversationAction({ messages, workflow, pendingRun }, text) {
   if (pendingRun) return { type: 'resume', runId: pendingRun };
   const question = messages.findLast((item) => item.kind === 'agent-question' && item.phase === 'pending');
   if (question) return { type: 'question', questionId: question.id };
-  if (/怎么|为什么|是什么|帮助|如何/.test(text)) return { type: 'reply', text: '你可以告诉我需要调整的商品卖点、人物或画面，也可以先打开生成内容查看细节。确认当前方案后，我会继续下一步。' };
-  if (scenarioStage === 2) return { type: 'run', runId: 3 };
-  if (scenarioStage === 3) return { type: 'run', runId: /人物|演员|形象|主角|年轻|换/.test(text) ? 4 : 7 };
-  if (scenarioStage === 4) return { type: 'run', runId: 5 };
-  if (scenarioStage === 6) return { type: 'run', runId: 7 };
-  if (scenarioStage >= 8) return { type: 'reply', text: '这次成片已经完成。打开右上角的生成内容，可以预览视频、编辑画面描述并保存新版本；引用某条产物后再发送修改意见，我会把意见记录到该产物中。' };
-  return { type: 'reply', text: '我已收到你的补充。请先完成当前确认，再继续生成。' };
+  const decision = recognizeMockIntent(text);
+  const rule = mockDecisionRules[workflow?.phase];
+  if (decision.type === 'decline') return { type: 'reply', text: '好的，先不继续生成。已有内容会保留，你可以继续补充或修改。' };
+  if (Number.isInteger(rule?.[decision.type])) return { type: 'run', runId: rule[decision.type], ...(decision.index == null ? {} : { actorIndex: decision.index }) };
+  return { type: 'reply', text: rule?.feedback || '我已收到。请告诉我这次想完成的创作目标，或补充商品和参考素材。' };
 }
 
 export function selectedCampaigns(messages) {
@@ -27,7 +28,16 @@ export function personalizeText(text, state) {
 
 export function publishArtifacts(current, outputs, fixtures, state, runId) {
   const ids = new Set(outputs.flatMap((node) => [node.artifactId, ...(node.artifactIds || [])]).filter(Boolean));
-  if (runId === 3) ['product-image-1', 'product-image-2', 'character-1', 'preview-1'].forEach((id) => ids.add(id));
-  return [...current, ...fixtures.filter((item) => ids.has(item.id) && !current.some((existing) => existing.id === item.id))
-    .map((item) => ({ ...structuredClone(item), title: personalizeText(item.title, state), createdAt: new Date().toLocaleString('zh-CN'), revision: 1 }))];
+  const published = [...current];
+  function publish(id) {
+    if (published.some((item) => item.id === id)) return;
+    const fixture = fixtures.find((item) => item.id === id);
+    if (!fixture) return;
+    const item = artifactContent({ ...structuredClone(fixture), title: personalizeText(fixture.title, state), createdAt: new Date().toLocaleString('zh-CN'), revision: 1 }, state);
+    published.push(item);
+    referencedDocumentArtifacts(item.content).forEach(publish);
+    (fixture.dependencies || []).forEach(publish);
+  }
+  ids.forEach(publish);
+  return published;
 }

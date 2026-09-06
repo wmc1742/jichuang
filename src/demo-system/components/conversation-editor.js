@@ -1,6 +1,6 @@
-import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906a';
-import { getConversationApiBinding } from '../editor/conversation-api-bindings.js?v=20260906a';
-import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906a';
+import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906b';
+import { getConversationApiBinding } from '../editor/conversation-api-bindings.js?v=20260906b';
+import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906b';
 
 const iconOptions = [
   { value: 'none', label: '无图标' },
@@ -55,6 +55,11 @@ const editableProperties = [
 ];
 
 function PropertyField(message, property) {
+  if (property.key === 'text' && Array.isArray(message.content)) {
+    return message.content.map((part, index) => part.type === 'text'
+      ? `<label class="editor-field"><span>文字片段 ${index + 1}</span><textarea data-editor-content-index="${index}" rows="2">${escapeHtml(part.text)}</textarea></label>`
+      : `<div class="editor-field"><span>引用</span><code>${escapeHtml(part.reference?.title || '')}</code></div>`).join('');
+  }
   if (!(property.key in message)) return '';
   const rawValue = message[property.key];
   const value = Array.isArray(rawValue) ? rawValue.join('\n') : rawValue;
@@ -76,7 +81,7 @@ function ApiBindingPanel(message, component, source) {
       <div class="editor-api-panel__body">
         <div class="editor-api-notice"><i></i><span>当前由 Mock 场景驱动，以下 API 是组件需要遵循的接口契约。</span></div>
         <dl class="editor-api-meta">
-          <div><dt>Mock 来源</dt><dd><code>${escapeHtml(binding.mock.source)}</code></dd></div>
+          <div><dt>数据来源</dt><dd><code>${escapeHtml(binding.mock.source)}</code></dd></div>
           <div><dt>控制器</dt><dd><code>${escapeHtml(binding.controller)}</code></dd></div>
           <div><dt>触发条件</dt><dd>${escapeHtml(binding.trigger)}</dd></div>
           <div><dt>传输方式</dt><dd>${escapeHtml(binding.transport)}</dd></div>

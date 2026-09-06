@@ -1,5 +1,6 @@
-import { media } from '../data/assets.js?v=20260906a';
-import { artifactContent } from '../artifacts/content.js?v=20260906a';
+import { media } from '../data/assets.js?v=20260906b';
+import { StructuredDocument } from './document-blocks.js?v=20260906b';
+import { artifactContent } from '../artifacts/content.js?v=20260906b';
 import {
   ArtifactType,
   ArtifactView,
@@ -8,8 +9,8 @@ import {
   createArtifactWorkspace,
   generatedArtifactTypes,
   getArtifactType,
-} from '../artifacts/model.js?v=20260906a';
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906a';
+} from '../artifacts/model.js?v=20260906b';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906b';
 
 function workspaceState(state) {
   if (state.artifactWorkspace) return state.artifactWorkspace;
@@ -115,25 +116,12 @@ function DetailTitle(artifact, actions = '') {
   return `<div class="artifact-detail-title"><h1>${escapeHtml(artifact.title)}</h1><div>${actions}</div></div>`;
 }
 
-function SubjectCard({ image, kind, name, voice = false, drill = false }) {
-  return `<${drill ? 'button' : 'div'} class="artifact-subject-card" ${drill ? 'data-action="drill-artifact" data-target="actor"' : ''}>
-    <span class="artifact-subject-card__media"><img src="${escapeHtml(image)}" alt="${escapeHtml(name)}">${voice ? `<i>${Icon('play')}</i>` : ''}</span>
-    <small>${escapeHtml(kind)}</small><b>${escapeHtml(name)}</b>
-  </${drill ? 'button' : 'div'}>`;
-}
-
-function StoryboardDocument({ editing = false, artifact } = {}) {
-  const content = artifact.content;
-  const subjects = artifact.id.startsWith('requirements') ? '' : `<section><h2>主体设定</h2><div class="artifact-subject-grid">${SubjectCard({ image: artifact.productImage, kind: '商品', name: artifact.productName })}${SubjectCard({ image: artifact.actor.previewUrl, kind: '主角', name: artifact.actor.title, drill: editing })}</div></section>`;
-  return `<article class="artifact-document ${editing ? 'is-editing' : ''}"><section><h2>${artifact.id.startsWith('requirements') ? '需求概述' : '创意概述'}</h2>${editing ? `<textarea data-artifact-field="content.intro" aria-label="创意概述">${escapeHtml(content.intro)}</textarea>` : `<p>${escapeHtml(content.intro)}</p>`}</section>${subjects}<section><h2>${artifact.id.startsWith('requirements') ? '成片要求' : '分镜脚本'}</h2>${editing ? `<textarea class="document-body-editor" data-artifact-field="content.body" aria-label="文稿正文">${escapeHtml(content.body)}</textarea>` : `<p class="document-body-copy">${escapeHtml(content.body)}</p>`}</section>${artifact.feedback?.length ? `<section><h2>修改意见</h2>${artifact.feedback.map((item) => `<p>${escapeHtml(item.text)}</p>`).join('')}</section>` : ''}</article>`;
-}
-
-function DocumentDetail(artifact, editing = false) {
+function DocumentDetail(artifact, editing = false, state) {
   const title = editing ? { ...artifact, title: `编辑：${artifact.title}` } : artifact;
   const actions = editing
     ? `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`
     : `${DetailAction({ label: '引用至会话', action: 'quote-artifact', icon: 'share' })}${DetailAction({ label: '编辑', action: 'edit-artifact', primary: true })}`;
-  return `<div class="artifact-detail artifact-detail--document">${DetailTitle(title, actions)}<div class="artifact-detail-scroll">${StoryboardDocument({ editing, artifact })}${artifact.revision > 1 ? `<small class="artifact-revision">版本 ${artifact.revision} · ${escapeHtml(artifact.updatedAt || '')}</small>` : ''}</div></div>`;
+  return `<div class="artifact-detail artifact-detail--document">${DetailTitle(title, actions)}<div class="artifact-detail-scroll">${StructuredDocument({ editing, artifact, artifacts: state.artifacts, product: state.product })}</div></div>`;
 }
 
 function VideoDetail(artifact, workspace) {
@@ -187,11 +175,11 @@ function ArtifactContent(state, workspace) {
   if (workspace.activeView === ArtifactView.DRILL) return DrillEditor(artifact);
   const type = getArtifactType(artifact.type).id;
   if (workspace.activeView === ArtifactView.EDIT) {
-    if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, true);
+    if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, true, state);
     if (type === ArtifactType.VIDEO || type === ArtifactType.PREVIEW) return VideoEditor(artifact, type === ArtifactType.PREVIEW, state.activeScene || 0);
     if (type === ArtifactType.ACTOR) return ActorDetail(artifact, true);
   }
-  if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact);
+  if (type === ArtifactType.DOCUMENT) return DocumentDetail(artifact, false, state);
   if (type === ArtifactType.VIDEO) return VideoDetail(artifact, workspace);
   if (type === ArtifactType.IMAGE) return ImageDetail(artifact);
   if (type === ArtifactType.PREVIEW) return VideoEditor(artifact, true, state.activeScene || 0);

@@ -2,14 +2,16 @@ const streamEndpoint = 'GET /api/agent/runs/:runId/events';
 
 const bindings = {
   UserMessage: {
-    controller: 'sendMessage() / startScenario()',
+    controller: 'inputRequest() → startScenario() / advanceScenario()',
     transport: 'HTTP',
     endpoint: 'POST /api/agent/tasks/:taskId/messages',
     event: 'message.accepted',
     trigger: '用户发送消息或提交附件',
     fields: [
-      ['text', 'request.content.text', '原样传递'],
-      ['attachment', 'request.attachments[]', '映射为商品或素材引用'],
+      ['content[]', 'request.content[]', '保留文字与引用的顺序'],
+      ['text', 'request.text', '由有序内容块生成的纯文本'],
+      ['attachments[]', 'request.attachments[]', '商品或产物引用，保留 artifactId 和 revisionId'],
+      ['skill', 'request.skill', '所选技能标识，不参与组件布局判断'],
     ],
     sample: { type: 'message.accepted', message_id: 'msg_01', role: 'user' },
   },
@@ -228,9 +230,9 @@ export function getConversationApiBinding(message, component, selectedSource) {
   return {
     ...binding,
     mock: {
-      mode: 'Mock',
+      mode: component === 'UserMessage' ? 'ClientInput' : 'Mock',
       source: selectedSource || message.editorSource || `scenarioMessages.${message.id}`,
-      module: 'src/demo-system/scenarios/luosifen.js',
+      module: component === 'UserMessage' ? 'src/demo-system/composer/model.js' : 'src/demo-system/scenarios/luosifen.js',
       connected: false,
     },
   };

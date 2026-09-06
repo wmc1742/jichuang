@@ -1,6 +1,7 @@
 export const assetRoot = './assets';
 
 export const icons = {
+  close: `${assetRoot}/agent-2/icons/composer-close.svg`,
   logoMark: `${assetRoot}/agent-2/icons/logo-mark.svg`,
   logoWord: `${assetRoot}/agent-2/icons/logo-word.svg`,
   collapse: `${assetRoot}/agent-2/icons/collapse.svg`,

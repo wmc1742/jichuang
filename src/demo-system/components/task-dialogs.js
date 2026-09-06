@@ -1,14 +1,7 @@
-import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906a';
-import { media } from '../data/assets.js?v=20260906a';
-
-export const skills = [
-  { name: '大促推广视频', description: '结合商品特点和推广节点，生成大促视频。', image: media.product },
-  { name: '场景优化', description: '为商品补充适合的使用场景。', image: media.inspirations?.[0] || media.product },
-  { name: '家清剧情视频', description: '以生活化剧情表达商品卖点。', image: media.conversationProductsAll[2] },
-  { name: '服饰多场景试穿', description: '呈现服饰在不同场景中的穿着效果。', image: media.conversationActors[0] },
-  { name: '爆款裂变', description: '基于现有创意生成多种表达方案。', image: media.conversationProductsAll[3] },
-  { name: '商品卖点拆解', description: '整理商品信息和可表达的核心卖点。', image: media.product },
-];
+import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906b';
+import { media } from '../data/assets.js?v=20260906b';
+import { skills } from '../scenarios/skills.js?v=20260906b';
+export { skills } from '../scenarios/skills.js?v=20260906b';
 
 export function SkillChoices() {
   return `<div class="new-task-skill-track">${skills.map((skill) => `<div class="skill-choice"><button class="new-task-skill" data-action="choose-skill" data-skill="${skill.name}"><img src="${skill.image}" alt=""><span>${skill.name}</span>${Icon('send')}</button><div class="skill-preview"><img src="${skill.image}" alt=""><b>${skill.name}</b><p>${skill.description}</p></div></div>`).join('')}<button class="new-task-skill" data-action="open-skills">全部技能 ${Icon('chevronRight')}</button></div>`;

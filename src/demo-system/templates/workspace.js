@@ -1,11 +1,11 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906a';
-import { Composer } from '../components/composer.js?v=20260906a';
-import { MessageFeed } from '../components/messages.js?v=20260906a';
-import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906a';
-import { ConversationEditor } from '../components/conversation-editor.js?v=20260906a';
-import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906a';
-import { SkillChoices } from '../components/task-dialogs.js?v=20260906a';
-import { escapeHtml } from '../ui/primitives.js?v=20260906a';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906b';
+import { Composer } from '../components/composer.js?v=20260906b';
+import { MessageFeed } from '../components/messages.js?v=20260906b';
+import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906b';
+import { ConversationEditor } from '../components/conversation-editor.js?v=20260906b';
+import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906b';
+import { SkillChoices } from '../components/task-dialogs.js?v=20260906b';
+import { escapeHtml } from '../ui/primitives.js?v=20260906b';
 
 function NewTaskTemplate(state) {
   return `
@@ -14,8 +14,7 @@ function NewTaskTemplate(state) {
       <section class="new-task-pane">
         <div class="new-task-stage">
           <h1>说出你的想法，开启专业商业化创作</h1>
-          ${state.selectedSkill ? `<div class="selected-skill">${escapeHtml(state.selectedSkill)}<button data-action="clear-skill" aria-label="移除技能">×</button></div>` : ''}
-          ${Composer({ newTask: true, draft: state.draft, attachment: state.attachment, busy: state.busy })}
+          ${Composer({ newTask: true, draft: state.draft, attachment: state.attachment, input: state.input, busy: state.busy })}
           <div class="new-task-skill-rail">
             ${SkillChoices()}
           </div>
@@ -37,7 +36,7 @@ export function WorkspaceTemplate(state) {
       <section class="conversation-pane ${confirmation ? 'has-confirmation' : ''}">
         ${ConversationHeader({ projectMenuOpen: state.projectMenuOpen, title: state.projectTitle, editorEnabled: editorOpen })}
         <main class="conversation-scroll" data-role="conversation-scroll"><div class="conversation-column">${MessageFeed({ messages: feedMessages, artifacts: state.artifacts, busy: state.busy })}</div></main>
-        <div class="conversation-composer ${confirmation ? 'has-confirmation' : ''}"><div class="conversation-column">${Composer({ draft: state.draft, attachment: state.attachment, busy: state.busy, confirmation })}</div></div>
+        <div class="conversation-composer ${confirmation ? 'has-confirmation' : ''}"><div class="conversation-column">${Composer({ draft: state.draft, attachment: state.attachment, input: state.input, busy: state.busy, confirmation })}</div></div>
       </section>
       ${workbenchOpen ? ArtifactWorkbench(state) : ''}
       ${editorOpen ? ConversationEditor(state) : ''}

@@ -1,4 +1,4 @@
-import { ConversationEvent } from './runtime.js?v=20260906a';
+import { ConversationEvent } from './runtime.js?v=20260906b';
 
 const interactionVariants = Object.freeze({
   questions: 'open',

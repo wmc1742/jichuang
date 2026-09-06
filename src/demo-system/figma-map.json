@@ -7,6 +7,11 @@
     "artifactContent": "1176:118747"
   },
   "mappings": {
+    "ComposerInput": "1047:44266",
+    "SkillTag": "1047:44300",
+    "ComposerMaterialSlot": "1047:44296",
+    "StructuredDocument": "1184:124104",
+    "StructuredDocumentEdit": "1184:125465",
     "TaskSidebar": "851:69977",
     "ConversationComplex": "851:73420",
     "WorkspaceStructure": "851:69976",

@@ -8,21 +8,26 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260906a';
-import { media } from './data/assets.js?v=20260906a';
-import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906a';
-import { TaskDialogs } from './components/task-dialogs.js?v=20260906a';
-import { ConversationSettingsModal } from './components/navigation.js?v=20260906a';
-import { escapeHtml } from './ui/primitives.js?v=20260906a';
-import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906a';
-import { artifactContent } from './artifacts/content.js?v=20260906a';
-import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906a';
-import { HomeTemplate } from './templates/home.js?v=20260906a';
-import { StudioTemplate } from './templates/studio.js?v=20260906a';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260906a';
-import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906a';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906a';
-import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906a';
+} from './scenarios/luosifen.js?v=20260906b';
+import { media } from './data/assets.js?v=20260906b';
+import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906b';
+import { TaskDialogs } from './components/task-dialogs.js?v=20260906b';
+import { ConversationSettingsModal } from './components/navigation.js?v=20260906b';
+import { escapeHtml } from './ui/primitives.js?v=20260906b';
+import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906b';
+import { artifactContent } from './artifacts/content.js?v=20260906b';
+import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906b';
+import { readStructuredEntry } from './components/composer.js?v=20260906b';
+import { skillById } from './scenarios/skills.js?v=20260906b';
+import { replaceDocumentReference } from './artifacts/document.js?v=20260906b';
+import { phasesAfterRun } from './scenarios/decisions.js?v=20260906b';
+import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906b';
+import { HomeTemplate } from './templates/home.js?v=20260906b';
+import { StudioTemplate } from './templates/studio.js?v=20260906b';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260906b';
+import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906b';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906b';
+import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906b';
 import {
   ArtifactView,
   artifactById,
@@ -30,7 +35,7 @@ import {
   createArtifactWorkspace,
   getArtifactType,
   openArtifactTab,
-} from './artifacts/model.js?v=20260906a';
+} from './artifacts/model.js?v=20260906b';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -179,6 +184,7 @@ const state = {
   page: studioMode ? 'studio' : workspaceView ? 'workspace' : 'home',
   draft: interactiveConversationEntry ? '根据 即创螺蛳粉 这个商品为我生成用于大促推广的视频' : '',
   attachment: interactiveConversationEntry ? project.product : null,
+  input: migrateInput({ draft: interactiveConversationEntry ? '根据 即创螺蛳粉 这个商品为我生成用于大促推广的视频' : '', attachment: interactiveConversationEntry ? project.product : null }),
   messages: workspaceView && !newTaskView && snapshotMode ? applyConversationConfig(completedScenarioMessages, initialConversationConfig) : [],
   artifacts: snapshotMode || ['video-list', 'video-detail'].includes(viewMode) ? structuredClone(scenarioArtifacts) : [],
   scenarioStage: workspaceView && !newTaskView && snapshotMode ? 8 : 1,
@@ -232,7 +238,7 @@ if (['video-list', 'video-detail'].includes(viewMode)) {
   state.artifactWorkspace.selectedCategory = 'video';
   if (viewMode === 'video-detail' && state.artifacts.some((item) => item.id === 'campaign-video-1')) state.artifactWorkspace = openArtifactTab(state.artifactWorkspace, 'campaign-video-1');
 }
-if (!state.product) state.product = state.attachment || project.product;
+if (!state.product && state.taskMode !== 'new') state.product = state.attachment || project.product;
 try { await loadMedia(); } catch { /* Local uploads are optional when IndexedDB is unavailable. */ }
 if (window.location.hash.startsWith('#task=')) {
   try {
@@ -322,6 +328,7 @@ function render({ keepScroll = true, scrollToEnd = false } = {}) {
     updateQuestionFormState(form);
   });
   if (state.readOnly) document.querySelectorAll('#app input, #app textarea, #app select').forEach((field) => { field.disabled = true; });
+  if (state.readOnly) document.querySelectorAll('[contenteditable]').forEach((field) => { field.contentEditable = 'false'; });
   const dialog = state.dialog || (state.settingsOpen ? 'settings' : null);
   const shell = document.querySelector('.agent-shell');
   if (shell) shell.inert = Boolean(dialog);
@@ -354,11 +361,30 @@ function saveQuestionDraft(form) {
 }
 
 function syncDraft() {
+  const structured = document.querySelector('[data-role="structured-input"]');
+  if (structured) {
+    state.input = readStructuredEntry(structured, state.input);
+    state.draft = inputText(state.input);
+    state.attachment = inputReferences(state.input)[0] || null;
+    return;
+  }
   const selector = state.page === 'workspace'
     ? '.conversation-composer [data-role="composer-input"], .new-task-stage [data-role="composer-input"]'
     : '[data-role="composer-input"]';
   const input = document.querySelector(selector);
   if (input) state.draft = `${input.dataset.draftPrefix || ''}${input.dataset.draftAttachment || ''}${input.value}`;
+}
+
+function setInput(input) {
+  state.input = input;
+  state.draft = inputText(input);
+  state.attachment = inputReferences(input)[0] || null;
+  state.selectedSkill = input.skill?.name || null;
+}
+
+function attachReference(reference) {
+  setInput(attachInputReference(state.input, reference, state.inputSlotId));
+  state.inputSlotId = null;
 }
 
 function openExistingTask(taskId) {
@@ -403,24 +429,32 @@ function openNewTask() {
 }
 
 function startScenario() {
-  if (state.busy || !state.draft.trim()) return;
+  if (state.busy || !validateInput(state.input).valid) return;
+  if (state.input.skill && state.input.skill.id !== 'campaign-video') {
+    notify('该技能尚未配置可执行流程，输入内容已保留。');
+    return;
+  }
   cancelActiveRun();
   setViewMode('conversation');
   const request = state.draft.trim() || '根据 即创螺蛳粉 这个商品为我生成用于大促推广的视频';
-  const firstMessage = { ...scenarioMessages[0], text: state.attachment && request.includes(state.attachment.title) ? request.replace(state.attachment.title, '{attachment}') : request, attachment: state.attachment };
+  const submitted = inputRequest(state.input);
+  const firstMessage = { ...scenarioMessages[0], text: request, content: submitted.content, attachments: submitted.attachments, skill: submitted.skill, attachment: null, editorSource: `tasks.${state.taskId}.request` };
   const configuredFirstMessage = applyConversationConfig([firstMessage], state.editor.config)[0] || firstMessage;
   const welcome = applyConversationConfig([getScenarioMessage('welcome')], state.editor.config)[0];
   Object.assign(state, {
     page: 'workspace',
     taskMode: 'existing',
     projectTitle: state.attachment?.title || request.slice(0, 18),
-    product: state.attachment || { ...project.product },
+    product: submitted.attachments.find((item) => item.type === 'product') || state.product || { title: request.slice(0, 18), thumbnail: '' },
+    request: submitted,
     messages: [configuredFirstMessage],
     artifacts: [],
     scenarioStage: 1,
     pendingRun: 1,
     draft: '',
     attachment: null,
+    input: createInput(),
+    selectedSkill: null,
     busy: true,
   });
   render({ keepScroll: false, scrollToEnd: true });
@@ -481,7 +515,7 @@ function streamAssistantNode(node, runToken, onComplete) {
 }
 
 function revealRunOutputs(run, runId, runToken) {
-  const outputs = applyConversationConfig(run.outputIds.map(getScenarioMessage).filter(Boolean).map((node) => {
+  const outputs = applyConversationConfig((run.outputNodes || run.outputIds.map(getScenarioMessage)).filter(Boolean).map((node) => {
     const next = node.text ? { ...node, text: personalizeText(node.text, state) } : node;
     if (runId === 5) {
       if (next.prompt) next.prompt = `是否将形象${(state.selectedActorIndex || 0) + 1}用在创意分镜中`;
@@ -492,9 +526,11 @@ function revealRunOutputs(run, runId, runToken) {
   const revealAt = (index) => {
     if (runToken !== activeRunToken) return;
     if (index >= outputs.length) {
-      state.scenarioStage = runId;
+      if (phasesAfterRun[runId]) state.scenarioStage = runId;
+      if (phasesAfterRun[runId]) state.workflow = { phase: phasesAfterRun[runId] };
       state.busy = false;
       state.pendingRun = null;
+      state.pendingRunSpec = null;
       activeRunOutputTimer = null;
       render({ scrollToEnd: true });
       return;
@@ -514,18 +550,15 @@ function revealRunOutputs(run, runId, runToken) {
   revealAt(0);
 }
 
-function runAgentStage(runId) {
-  const run = scenarioRuns[runId];
+function runAgentStage(runId, specification = null) {
+  const run = specification || scenarioRuns[runId] || state.pendingRunSpec;
   if (!run) return;
   cancelActiveRun();
   const runToken = activeRunToken;
   const simulation = getRunSimulationPlan(run);
   const progress = run.thinking;
   state.pendingRun = runId;
-  if (runId === 6) {
-    const storyboard = artifactById(state.artifacts, 'creative-storyboard');
-    if (storyboard) storyboard.actorId = `character-${(state.selectedActorIndex || 0) + 1}`;
-  }
+  state.pendingRunSpec = scenarioRuns[runId] ? null : run;
   state.messages = applyConversationEvent(state.messages, {
     type: ConversationEvent.RUN_STARTED,
     runId,
@@ -540,6 +573,15 @@ function runAgentStage(runId) {
   const completeRun = () => {
     window.clearInterval(activeRunTimer);
     activeRunTimer = null;
+    if (runId === 6) {
+      const storyboard = artifactById(state.artifacts, 'creative-storyboard');
+      if (storyboard) {
+        const hydrated = artifactContent(storyboard, state);
+        const actorId = `character-${(state.selectedActorIndex || 0) + 1}`;
+        const draft = { ...hydrated, actorId, content: replaceDocumentReference(hydrated.content, hydrated.actorId || 'character-1', actorId) };
+        state.artifacts = state.artifacts.map((item) => item.id === storyboard.id ? commitArtifactEdit(item, draft) : item);
+      }
+    }
     state.messages = applyConversationEvent(state.messages, {
       type: ConversationEvent.RUN_COMPLETED,
       runId,
@@ -596,11 +638,8 @@ function runAgentStage(runId) {
 
 function advanceScenario(text, interactionId = null) {
   if (state.busy || state.readOnly) return;
-  const transition = nextConversationAction(state, text);
-  if (state.scenarioStage === 4) {
-    const number = text.match(/[123一二三]/)?.[0];
-    state.selectedActorIndex = ({ '1': 0, '一': 0, '2': 1, '二': 1, '3': 2, '三': 2 })[number] ?? 0;
-  }
+  const transition = nextConversationAction(state, inputInstruction(state.input) || text);
+  if (transition.actorIndex != null) state.selectedActorIndex = transition.actorIndex;
   if (transition.type === 'resume') { runAgentStage(transition.runId); return; }
   if (transition.type === 'question') { notify('请先完成当前追问或确认，再继续。你的输入已保留。'); render(); return; }
   const reference = state.attachment?.artifactId;
@@ -608,13 +647,12 @@ function advanceScenario(text, interactionId = null) {
     const artifact = artifactById(state.artifacts, reference);
     if (artifact) artifact.feedback = [...(artifact.feedback || []), { text, createdAt: new Date().toISOString() }];
   }
-  state.messages = appendConversationNodes(state.messages, [{ id: `custom-${Date.now()}`, role: 'user', type: 'text', text, attachment: state.attachment }]);
-  state.draft = '';
-  state.attachment = null;
+  const request = inputRequest(state.input);
+  state.messages = appendConversationNodes(state.messages, [{ id: `custom-${Date.now()}`, role: 'user', type: 'text', text, content: request.content, attachments: request.attachments, editorSource: `tasks.${state.taskId}.messages` }]);
+  setInput(createInput());
   if (transition.type === 'run') runAgentStage(transition.runId);
   else {
-    state.busy = true;
-    streamAssistantNode({ id: `reply-${Date.now()}`, role: 'assistant', type: 'text', kind: ConversationKind.ASSISTANT, text: reference ? '已将这条修改意见记录到引用产物。你可以在该产物的编辑页继续修改并保存新版本。' : transition.text }, activeRunToken, () => { state.busy = false; render(); });
+    runAgentStage(`reply-${Date.now()}`, { thinking: { title: '正在思考···' }, simulation: { durationSeconds: 5 }, elapsed: '用时5s', outputNodes: [{ id: `reply-text-${Date.now()}`, role: 'assistant', type: 'text', kind: ConversationKind.ASSISTANT, text: transition.text }] });
   }
 }
 
@@ -701,6 +739,12 @@ function normalizeEditorValue(baseMessage, key, value) {
 
 app.addEventListener('input', (event) => {
   if (state.readOnly) return;
+  if (event.target.closest('[data-role="structured-input"]')) {
+    syncDraft();
+    const send = document.querySelector('.composer [data-action="send-message"]');
+    if (send) send.disabled = state.busy || !validateInput(state.input).valid;
+    persistCurrentTask();
+  }
   if (event.target.matches('[data-product-search], [data-skill-search]')) {
     const query = event.target.value.trim();
     document.querySelectorAll('.product-library-item, .skill-library > button').forEach((item) => { item.hidden = !item.textContent.includes(query); });
@@ -759,9 +803,9 @@ app.addEventListener('change', async (event) => {
     try {
       const url = await storeMedia(file);
       if (taskId !== state.taskId) return;
-      const product = { title: file.name.replace(/\.[^.]+$/, ''), thumbnail: file.type.startsWith('image/') ? url : media.product, mediaUrl: url, type: file.type.startsWith('image/') ? 'image' : 'video' };
+      const product = { title: file.name.replace(/\.[^.]+$/, ''), thumbnail: file.type.startsWith('image/') ? url : '', mediaUrl: url, type: event.target.dataset.upload === 'product' ? 'product' : file.type.startsWith('image/') ? 'image' : 'video' };
       if (event.target.dataset.upload === 'product') state.products.push(product);
-      state.attachment = product;
+      attachReference(product);
       state.dialog = null;
       notify('素材已添加并保存在此浏览器');
     } catch { notify('素材保存失败，请检查浏览器存储权限后重试'); }
@@ -813,14 +857,16 @@ app.addEventListener('click', async (event) => {
   if (action === 'close-dialog') state.dialog = null;
   else if (action === 'open-upload') state.dialog = 'upload';
   else if (action === 'open-skills') state.dialog = 'skills';
-  else if (action === 'clear-skill') state.selectedSkill = null;
+  else if (action === 'clear-skill') setInput(removeInputSkill(state.input));
+  else if (action === 'fill-input-slot') { state.inputSlotId = target.dataset.slot; state.dialog = target.dataset.accepts === 'product' ? 'product' : 'upload'; state.selectedProduct = null; }
+  else if (action === 'remove-input-reference') setInput(removeInputReference(state.input, target.dataset.part));
   else if (action === 'pick-product') state.selectedProduct = Number(target.dataset.index);
-  else if (action === 'apply-product') { state.attachment = state.products[state.selectedProduct]; state.dialog = null; }
+  else if (action === 'apply-product') { attachReference({ ...state.products[state.selectedProduct], type: 'product' }); state.dialog = null; }
   else if (action === 'add-text') state.dialog = 'text';
   else if (action === 'apply-text') {
     const text = document.querySelector('[data-text-attachment]')?.value.trim();
     if (!text) return;
-    state.attachment = { title: '参考文案', text, type: 'document', thumbnail: media.product };
+    attachReference({ title: '参考文案', text, type: 'document' });
     state.dialog = null;
   } else if (action === 'rename-task') { state.dialog = 'rename'; state.projectMenuOpen = false; }
   else if (action === 'apply-task-name') {
@@ -897,6 +943,14 @@ app.addEventListener('click', async (event) => {
       if (field.type === 'radio' && !field.checked) return;
       override[field.dataset.editorProp] = normalizeEditorValue(baseMessage, field.dataset.editorProp, field.value);
     });
+    if (Array.isArray(baseMessage.content)) {
+      override.content = structuredClone(baseMessage.content);
+      form.querySelectorAll('[data-editor-content-index]').forEach((field) => {
+        const part = override.content[Number(field.dataset.editorContentIndex)];
+        if (part?.type === 'text') part.text = field.value;
+      });
+      override.text = inputText({ parts: override.content });
+    }
     state.editor.config.instances[messageId] = override;
     const gapInput = form.querySelector('[data-editor-token="messageGap"]');
     if (gapInput && gapInput.value !== '') state.editor.config.tokens.messageGap = Number(gapInput.value);
@@ -984,10 +1038,15 @@ app.addEventListener('click', async (event) => {
     state.selectedProduct = null;
     state.dialog = 'product';
   } else if (action === 'clear-attachment') {
-    state.attachment = null;
+    const reference = state.input.parts.find((part) => part.type === 'reference');
+    if (reference) setInput(removeInputReference(state.input, reference.id));
   } else if (action === 'choose-skill') {
-    state.selectedSkill = target.dataset.skill;
-    state.draft = `根据 ${state.attachment?.title || '商品信息'} 为我生成${target.dataset.skill}`;
+    const skill = skillById(target.dataset.skill);
+    if (!skill) return;
+    const references = inputReferences(state.input);
+    let input = selectInputSkill(state.input, skill);
+    references.forEach((reference) => { input = attachInputReference(input, reference); });
+    setInput(input);
     state.dialog = null;
   } else if (action === 'scroll-skills') {
     const track = target.parentElement.querySelector('.new-task-skill-track');
@@ -999,7 +1058,7 @@ app.addEventListener('click', async (event) => {
       startScenario();
       return;
     }
-    if (!state.draft.trim()) return;
+    if (!validateInput(state.input).valid) return;
     advanceScenario(state.draft.trim(), implicitInteractionByRun[state.scenarioStage] || null);
     return;
   } else if (action === 'form-submit') {
@@ -1043,8 +1102,9 @@ app.addEventListener('click', async (event) => {
       userText: '我已确认',
       userMessageId: `${messageId}-answer-${Date.now()}`,
     });
-    state.draft = '';
-    runAgentStage(interaction?.nextRun || Math.min(state.scenarioStage + 1, 8));
+    setInput(createInput());
+    if (interaction?.nextRun) runAgentStage(interaction.nextRun);
+    else render();
     return;
   } else if (action === 'toggle-status') {
     const messageId = target.dataset.messageId;
@@ -1066,15 +1126,15 @@ app.addEventListener('click', async (event) => {
       userText: target.dataset.reply || '我已确认',
       userMessageId: `${interactionId}-answer-${Date.now()}`,
     });
-    state.draft = '';
-    state.attachment = null;
-    runAgentStage(interaction?.nextRun || Math.min(state.scenarioStage + 1, 8));
+    setInput(createInput());
+    if (interaction?.nextRun) runAgentStage(interaction.nextRun);
+    else render();
     return;
   } else if (action === 'cancel-confirmation') {
     const interactionId = target.dataset.interaction;
     state.messages = state.messages.map((message) => message.id === interactionId ? { ...message, phase: 'answered', text: '已取消', expanded: false, history: { type: 'confirmation', prompt: message.prompt, value: '取消' } } : message);
     state.messages = appendConversationNodes(state.messages, [{ id: `cancel-${Date.now()}`, role: 'user', type: 'text', text: '先不生成，我想补充信息' }]);
-    state.draft = '我想先补充一些信息：';
+    setInput(createInput('我想先补充一些信息：'));
   } else if (action === 'open-artifact-list') {
     openWorkbench(state.artifactWorkspace.selectedCategory || 'document', false);
   } else if (action === 'close-workbench') {
@@ -1124,7 +1184,7 @@ app.addEventListener('click', async (event) => {
     state.artifactWorkspace.playing = !state.artifactWorkspace.playing;
   } else if (action === 'quote-artifact') {
     const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
-    if (artifact) state.attachment = { artifactId: artifact.id, type: artifact.type, title: artifact.title, thumbnail: artifact.previewUrl || project.product.thumbnail };
+    if (artifact) attachReference({ artifactId: artifact.id, revisionId: artifact.revision, type: artifact.type, title: artifact.title, thumbnail: artifact.previewUrl });
     state.artifactWorkspace.open = false;
   } else if (action === 'edit-artifact') {
     const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
@@ -1154,6 +1214,12 @@ app.addEventListener('click', async (event) => {
     state.artifactWorkspace.activeView = ArtifactView.DETAIL;
     state.artifactWorkspace.drillTarget = null;
   } else if (action === 'drill-artifact') {
+    if (!state.artifactDraft) {
+      const artifact = artifactById(state.artifacts, state.artifactWorkspace.activeTabId);
+      if (artifact) state.artifactDraft = structuredClone(artifactContent(artifact, state));
+    }
+    const actor = artifactById(state.artifacts, target.dataset.artifact);
+    if (actor && state.artifactDraft) state.artifactDraft.actor = structuredClone(artifactContent(actor, state));
     state.artifactWorkspace.activeView = ArtifactView.DRILL;
     state.artifactWorkspace.drillTarget = target.dataset.target || 'actor';
   } else if (action === 'back-from-artifact-drill') {
@@ -1166,8 +1232,7 @@ app.addEventListener('click', async (event) => {
     state.artifactDraft = null;
     state.artifactWorkspace = openArtifactTab(state.artifactWorkspace, id);
   } else if (action === 'use-opportunity') {
-    state.draft = '根据这个灵感，为即创螺蛳粉生成一组大促推广视频';
-    state.attachment = project.product;
+    setInput(migrateInput({ draft: '根据这个灵感，为即创螺蛳粉生成一组大促推广视频', attachment: project.product }));
   }
 
   render();

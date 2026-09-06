@@ -1,4 +1,4 @@
-import { icons } from '../data/assets.js?v=20260906a';
+import { icons } from '../data/assets.js?v=20260906b';
 
 export function escapeHtml(value = '') {
   return String(value)

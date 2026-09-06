@@ -1,6 +1,6 @@
-import { CheckboxOption, CustomOption, FormAction, RadioOption, SelectFieldControl, TextFieldControl } from './form-controls.js?v=20260906a';
-import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906a';
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906a';
+import { CheckboxOption, CustomOption, FormAction, RadioOption, SelectFieldControl, TextFieldControl } from './form-controls.js?v=20260906b';
+import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906b';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906b';
 
 function editorAttributes(message, presentation) {
   const source = message.editorSource || `scenarioMessages.${message.id}`;
@@ -15,7 +15,7 @@ function editorClass(message) {
 function UserMessage(message, presentation) {
   const text = escapeHtml(message.text);
   const attachment = message.attachment ? ProductAttachment(message.attachment) : '';
-  const content = message.attachment
+  const content = message.content?.length ? message.content.map((part) => part.type === 'reference' ? ProductAttachment(part.reference) : escapeHtml(part.text || '')).join('') : message.attachment
     ? text.includes('{attachment}') ? text.replace('{attachment}', attachment) : `${text}${attachment}`
     : text;
   return `<article class="message message--user${editorClass(message)}" ${editorAttributes(message, presentation)}><div class="user-bubble">${content}</div></article>`;

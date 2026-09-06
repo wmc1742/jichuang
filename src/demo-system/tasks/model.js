@@ -1,7 +1,9 @@
-import { createArtifactWorkspace } from '../artifacts/model.js?v=20260906a';
+import { createArtifactWorkspace } from '../artifacts/model.js?v=20260906b';
+import { migrateInput } from '../composer/model.js?v=20260906b';
+import { phasesAfterRun } from '../scenarios/decisions.js?v=20260906b';
 
 export const TASK_STORAGE_KEY = 'agent2-tasks-v1';
-const fields = ['taskId', 'projectTitle', 'taskMode', 'messages', 'artifacts', 'scenarioStage', 'draft', 'attachment', 'product', 'settings', 'artifactWorkspace', 'pendingRun', 'selectedSkill', 'artifactDraft', 'selectedActorIndex', 'questionDrafts'];
+const fields = ['taskId', 'projectTitle', 'taskMode', 'messages', 'artifacts', 'scenarioStage', 'workflow', 'pendingRunSpec', 'draft', 'input', 'request', 'attachment', 'product', 'settings', 'artifactWorkspace', 'pendingRun', 'selectedSkill', 'artifactDraft', 'selectedActorIndex', 'questionDrafts'];
 
 export function createTask(overrides = {}) {
   return {
@@ -12,6 +14,8 @@ export function createTask(overrides = {}) {
     artifactWorkspace: createArtifactWorkspace(), artifactDraft: null,
     selectedActorIndex: 0, questionDrafts: {},
     ...overrides,
+    input: migrateInput(overrides),
+    workflow: overrides.workflow || { phase: phasesAfterRun[overrides.scenarioStage] || 'new' },
   };
 }
 

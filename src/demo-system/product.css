@@ -6,10 +6,20 @@
 .skill-preview > img { width: 100%; height: 126px; object-fit: cover; border-radius: 6px; }
 .skill-preview p { font-size: 12px; line-height: 20px; }
 .skill-choice:hover .skill-preview, .skill-choice:focus-within .skill-preview { display: block; }
-.selected-skill { position: absolute; z-index: 2; top: 260px; left: max(42px, calc(50% - 472px)); display: flex; gap: 8px; padding: 5px 10px; border-radius: 8px; background: #302638; }
-.selected-skill button { padding: 0; background: transparent; }
-.new-task-stage:has(.selected-skill) .composer--new-task { top: 310px; }
-.new-task-stage:has(.selected-skill) .new-task-skill-rail { top: 474px; }
+.composer__entry:has(.composer-input) { display: block; bottom: 64px; min-height: 0; }
+.composer-input { width: 100%; height: 100%; min-height: 36px; overflow-y: auto; outline: none; color: #fff; font-size: var(--composer-font-size); line-height: 36px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.composer-input:has(> [data-input-text]:only-child:empty)::before, .composer-input:empty::before { content: attr(data-placeholder); color: #ffffff66; pointer-events: none; }
+.composer-input > [data-input-text] { min-width: 1px; }
+.composer-skill, .composer-reference, .composer-slot { display: inline-flex; max-width: 100%; align-items: center; vertical-align: middle; white-space: nowrap; line-height: 20px; }
+.composer-skill { gap: 4px; margin-right: 8px; padding: 4px 8px; border: 1px solid white; border-radius: 24px; background: #ffffffe6; color: #7344e5; font-size: 12px; font-weight: 500; }
+.composer-skill button, .composer-reference button { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 16px; height: 16px; padding: 0; background: transparent; }
+.composer-skill .aic-icon, .composer-reference button .aic-icon { width: 16px; height: 16px; }
+.composer-slot button { display: inline-flex; gap: 4px; align-items: center; padding: 4px 8px; border: 1px solid #98abffcc; border-radius: 24px; color: #eeebff; background: #ffffff33; font-size: 14px; line-height: 20px; }
+.composer-slot .aic-icon { width: 16px; height: 16px; }
+.composer-reference { gap: 6px; padding: 4px 8px; border-radius: 12px; background: #ffffff14; color: #eeebff; font-size: 14px; }
+.composer-reference > span { display: inline-flex; gap: 4px; align-items: center; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.composer-reference > span > img { width: 20px; height: 20px; object-fit: cover; border-radius: 4px; }
+.composer-input:focus-visible { outline: none; }
 .recent-task { display: block; }
 .new-task > .aic-icon { width: 20px; height: 20px; flex-shrink: 0; }
 .task-dialog--product { width: min(1024px, 100%); min-height: min(710px, calc(100dvh - 48px)); display: flex; flex-direction: column; }
@@ -56,8 +66,29 @@
 .resume-run button { padding: 8px 16px; border: 1px solid #9d79ff; border-radius: 8px; background: #302044; }
 .shared-task-banner { position: fixed; z-index: 50; left: 50%; top: 8px; transform: translateX(-50%); padding: 6px 12px; border-radius: 8px; background: #302638; font-size: 12px; }
 .shared-task-banner button { margin-left: 12px; padding: 4px 8px; border-radius: 4px; background: #7440e8; }
-.document-body-copy { white-space: pre-wrap; }
-.document-body-editor { min-height: 300px; }
+.artifact-document { font-size: 14px; line-height: 24px; }
+.artifact-document .document-section { gap: 16px; }
+.artifact-document h2 { color: #aa8cff; line-height: 22px; }
+.artifact-document h3 { color: #eeebff; font-size: 16px; line-height: 22px; }
+.document-section--2 > h3 { counter-increment: document-subsection; }
+.document-section--2 > h3::before { content: counter(document-subsection) ' '; display: inline-block; min-width: 16px; }
+.document-section--1 { counter-reset: document-subsection; }
+.document-block { min-width: 0; max-width: 100%; }
+.document-paragraph { white-space: pre-wrap; overflow-wrap: anywhere; }
+.document-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding-left: 20px; }
+.document-list strong { color: #eeebffd9; font-weight: 500; }
+.artifact-document .artifact-subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 150px)); gap: 8px; }
+.artifact-document .artifact-subject-card { border-radius: 12px; }
+.artifact-document .artifact-subject-card__media { aspect-ratio: 1; }
+.document-actor-reference { display: inline-flex; gap: 4px; align-items: center; margin-bottom: 8px; padding: 2px 4px; border: 1px solid #ffffff14; border-radius: 6px; color: #eeebffa6; background: #ffffff1a; font-size: 14px; }
+.document-actor-reference img { width: 16px; height: 16px; border-radius: 4px; object-fit: cover; }
+.document-shot-title { color: #eeebffd9; }
+.storyboard-table { border-radius: 12px; }
+.storyboard-table header { background: #ffffff0f; color: #eeebffd9; }
+.storyboard-table > div > span { min-width: 0; padding: 20px 16px; border-top: 2px solid #242128; overflow-wrap: anywhere; }
+.document-image { padding: 0; background: transparent; }
+.document-image img, .document-video { max-width: 100%; max-height: 360px; border-radius: 8px; object-fit: contain; }
+.artifact-document.is-editing textarea { min-height: 72px; font-size: 14px; }
 .artifact-revision { display: block; margin-top: 20px; color: #918a9e; font-size: 12px; }
 video.artifact-video-stage { display: block; width: min(100%, 420px); height: auto; max-height: calc(100dvh - 180px); aspect-ratio: 9/16; margin: 16px auto; background: #000; object-fit: contain; }
 .video-editor-frames { display: flex; overflow-x: auto; }
@@ -86,13 +117,15 @@ video.artifact-video-stage { display: block; width: min(100%, 420px); height: au
   .new-task-stage { padding: 110px 16px 32px; height: auto; min-height: 100%; }
   .new-task-pane { overflow-y: auto; }
   .new-task-stage h1 { position: relative; top: auto; left: auto; transform: none; width: 100%; padding: 0; font-size: 22px; line-height: 32px; margin-bottom: 24px; }
-  .new-task-stage .composer--new-task, .new-task-stage:has(.selected-skill) .composer--new-task { position: relative; top: auto; left: auto; transform: none; width: 100%; height: 160px; }
-  .new-task-stage .new-task-skill-rail, .new-task-stage:has(.selected-skill) .new-task-skill-rail { position: relative; top: auto; left: auto; transform: none; width: 100%; margin-top: 20px; }
+  .new-task-stage .composer--new-task { position: relative; top: auto; left: auto; transform: none; width: 100%; height: 196px; }
+  .new-task-stage .new-task-skill-rail { position: relative; top: auto; left: auto; transform: none; width: 100%; margin-top: 20px; }
   .new-task-skill-track { gap: 8px; }
   .new-task-skill { min-width: 0; font-size: 12px; }
-  .selected-skill { position: relative; top: auto; left: auto; width: fit-content; margin-bottom: 8px; }
   .skill-preview { display: none !important; }
   .conversation-column { width: 100%; max-width: 100%; padding-left: 14px; padding-right: 14px; }
+  .conversation-scroll { bottom: 140px; }
+  .conversation-pane.has-confirmation .conversation-scroll { bottom: 192px; }
+  .message-feed { padding-bottom: 24px; }
   .conversation-header { padding: 12px; gap: 8px; }
   .generated-content-button { padding: 8px; width: 32px; min-width: 32px; }
   .generated-content-button span { display: none; }
