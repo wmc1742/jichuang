@@ -1,11 +1,11 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906b';
-import { Composer } from '../components/composer.js?v=20260906b';
-import { MessageFeed } from '../components/messages.js?v=20260906b';
-import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906b';
-import { ConversationEditor } from '../components/conversation-editor.js?v=20260906b';
-import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906b';
-import { SkillChoices } from '../components/task-dialogs.js?v=20260906b';
-import { escapeHtml } from '../ui/primitives.js?v=20260906b';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906c';
+import { Composer } from '../components/composer.js?v=20260906c';
+import { MessageFeed } from '../components/messages.js?v=20260906c';
+import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906c';
+import { ConversationEditor } from '../components/conversation-editor.js?v=20260906c';
+import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906c';
+import { SkillChoices } from '../components/task-dialogs.js?v=20260906c';
+import { escapeHtml } from '../ui/primitives.js?v=20260906c';
 
 function NewTaskTemplate(state) {
   return `

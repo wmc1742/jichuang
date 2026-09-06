@@ -1,6 +1,6 @@
-import { CheckboxOption, CustomOption, FormAction, RadioOption, SelectFieldControl, TextFieldControl } from './form-controls.js?v=20260906b';
-import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906b';
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906b';
+import { CheckboxOption, CustomOption, FormAction, RadioOption, SelectFieldControl, TextFieldControl } from './form-controls.js?v=20260906c';
+import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906c';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906c';
 
 function editorAttributes(message, presentation) {
   const source = message.editorSource || `scenarioMessages.${message.id}`;
@@ -76,7 +76,7 @@ function RunBlocks(message) {
   };
   if (message.blocks?.length) {
     return message.blocks.map((block) => block.type === 'text'
-      ? `<p>${escapeHtml(block.text)}</p>`
+      ? `<p>${escapeHtml(block.text)}${block.streaming ? '<i class="assistant-stream-cursor" aria-hidden="true"></i>' : ''}</p>`
       : step(block)).join('');
   }
   return `${message.thought ? `<p>${escapeHtml(message.thought)}</p>` : ''}${(message.steps || []).map(step).join('')}`;
@@ -269,13 +269,15 @@ const renderers = Object.freeze({
   VideoArtifactPresentation,
 });
 
+export function Message(input, artifacts = []) {
+  const presentation = resolveConversationPresentation(input);
+  if (presentation.placement !== 'feed') return '';
+  const renderer = renderers[presentation.renderer] || AssistantText;
+  return renderer(presentation.node, presentation, { artifacts });
+}
+
 export function MessageFeed({ messages, artifacts = [] }) {
-  const body = messages.map((input) => {
-    const presentation = resolveConversationPresentation(input);
-    if (presentation.placement !== 'feed') return '';
-    const renderer = renderers[presentation.renderer] || AssistantText;
-    return renderer(presentation.node, presentation, { artifacts });
-  }).join('');
+  const body = messages.map((input) => Message(input, artifacts)).join('');
 
   return `<div class="message-feed">${body}</div>`;
 }

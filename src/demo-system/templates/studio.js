@@ -1,9 +1,9 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906b';
-import { Composer } from '../components/composer.js?v=20260906b';
-import { MessageFeed } from '../components/messages.js?v=20260906b';
-import { icons, media } from '../data/assets.js?v=20260906b';
-import { project } from '../scenarios/luosifen.js?v=20260906b';
-import { Button, Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906b';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906c';
+import { Composer } from '../components/composer.js?v=20260906c';
+import { MessageFeed } from '../components/messages.js?v=20260906c';
+import { icons, media } from '../data/assets.js?v=20260906c';
+import { project } from '../scenarios/luosifen.js?v=20260906c';
+import { Button, Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906c';
 
 const sections = [
   ['button', 'Button'],

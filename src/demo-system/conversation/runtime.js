@@ -1,4 +1,4 @@
-import { ConversationKind, ConversationPhase, normalizeConversationNode, normalizeConversationNodes } from './model.js?v=20260906b';
+import { ConversationKind, ConversationPhase, normalizeConversationNode, normalizeConversationNodes } from './model.js?v=20260906c';
 
 export const ConversationEvent = Object.freeze({
   APPEND: 'conversation.node.appended',

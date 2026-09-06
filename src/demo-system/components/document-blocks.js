@@ -1,4 +1,4 @@
-import { escapeHtml } from '../ui/primitives.js?v=20260906b';
+import { escapeHtml } from '../ui/primitives.js?v=20260906c';
 
 function editableText(text, path, editing, label) {
   return editing ? `<textarea data-artifact-field="${path}" aria-label="${escapeHtml(label)}">${escapeHtml(text)}</textarea>` : escapeHtml(text);

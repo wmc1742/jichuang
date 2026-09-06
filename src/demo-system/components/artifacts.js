@@ -1,6 +1,6 @@
-import { media } from '../data/assets.js?v=20260906b';
-import { StructuredDocument } from './document-blocks.js?v=20260906b';
-import { artifactContent } from '../artifacts/content.js?v=20260906b';
+import { media } from '../data/assets.js?v=20260906c';
+import { StructuredDocument } from './document-blocks.js?v=20260906c';
+import { artifactContent } from '../artifacts/content.js?v=20260906c';
 import {
   ArtifactType,
   ArtifactView,
@@ -9,8 +9,8 @@ import {
   createArtifactWorkspace,
   generatedArtifactTypes,
   getArtifactType,
-} from '../artifacts/model.js?v=20260906b';
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906b';
+} from '../artifacts/model.js?v=20260906c';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906c';
 
 function workspaceState(state) {
   if (state.artifactWorkspace) return state.artifactWorkspace;

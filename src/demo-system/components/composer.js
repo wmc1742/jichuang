@@ -1,5 +1,5 @@
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906b';
-import { validateInput } from '../composer/model.js?v=20260906b';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906c';
+import { validateInput } from '../composer/model.js?v=20260906c';
 
 function StructuredEntry(input) {
   const skill = input.skill ? `<span class="composer-skill" contenteditable="false" data-component="SkillTag">${escapeHtml(input.skill.name)}<button data-action="clear-skill" aria-label="移除技能">${Icon('close')}</button></span>` : '';
@@ -10,7 +10,8 @@ function StructuredEntry(input) {
     const ref = part.reference;
     return `<span ${attrs} contenteditable="false" class="composer-reference"><span>${ref.thumbnail ? `<img src="${escapeHtml(ref.thumbnail)}" alt="">` : Icon(ref.type === 'video' ? 'video' : 'document')}${escapeHtml(ref.title)}</span><button data-action="remove-input-reference" data-part="${escapeHtml(part.id)}" aria-label="移除${escapeHtml(ref.title)}">${Icon('close')}</button></span>`;
   }).join('');
-  return `<div class="composer-input" data-role="structured-input" data-component="ComposerInput" contenteditable="true" role="textbox" aria-multiline="true" aria-label="输入创作需求" data-placeholder="上传商品、素材或想法，开始你的创作">${skill}${parts}</div>`;
+  const empty = !input.skill && input.parts.every((part) => part.type === 'text' && !part.text.trim());
+  return `<div class="composer-input" data-role="structured-input" data-empty="${empty}" data-component="ComposerInput" contenteditable="true" role="textbox" aria-multiline="true" aria-label="输入创作需求" data-placeholder="上传商品、素材或想法，开始你的创作">${skill}${parts}</div>`;
 }
 
 export function readStructuredEntry(element, input) {

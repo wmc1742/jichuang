@@ -1,4 +1,4 @@
-import { media } from '../data/assets.js?v=20260906b';
+import { media } from '../data/assets.js?v=20260906c';
 
 export const project = {
   id: 'luosifen-campaign',

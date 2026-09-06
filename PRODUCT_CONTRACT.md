@@ -54,6 +54,13 @@
 - Desktop 1440px and mobile 390px: Composer ownership and document structure checked. Mobile scroll region now ends above the input dock; no page-width overflow observed. Referenced storyboard images loaded without errors.
 - Automated: input composition/removal/migration, task round-trip, explicit decisions, document grammar/reference replacement, previous conversation and artifact regressions.
 
+## Browser feedback calibration, 2026-09-06c
+
+- Composer `1047:44266`: tag, text and reference share the same vertical center. Enter sends; Shift+Enter inserts a newline; composing IME input never sends. Empty hints disappear on focus and remain hidden after typing. Removed the all-skills recommendation entry, retaining the existing Composer skill selector.
+- Conversation `1094:95551`: the design-context screenshot shows a checked stacked-square icon, while its download URL incorrectly returns a product bag. The exact icon was exported read-only via Plugin API from `I1094:95551;718:7284`; both pending and answered questions use that component resource.
+- Completed time uses 16px/28px. Welcome and assistant replies stream; execution explanations now stream too. Ordered text/step blocks belong to the existing Run, not additional messages.
+- Verified locally: Enter send, Shift+Enter newline, empty/focused/typed placeholder, welcome prefixes, 16px computed font, question icon screenshot, four sequential steps and a 721ms observed reply-to-artifact gap. Desktop 1440px and mobile 390px checked; 40 automated regression tests pass.
+
 ## Remaining boundaries (not completion claims)
 
 - The executable Mock scenario is the campaign-video task. Other skill presets retain their input composition but do not silently run this scenario.

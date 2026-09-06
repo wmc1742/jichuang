@@ -20,7 +20,7 @@ export const icons = {
   actor: `${assetRoot}/agent-2/icons/artifact-actor.svg`,
   play: `${assetRoot}/agent-2/icons/play.svg`,
   selectionForm: `${assetRoot}/agent-2/icons/selection-form.svg`,
-  questionConfirm: `${assetRoot}/agent-2/icons/question-confirm.svg`,
+  questionConfirm: `${assetRoot}/agent-2/icons/question-confirm.svg?v=20260906c`,
   checkboxSelected: `${assetRoot}/agent-2/icons/checkbox-selected.svg`,
   thinkingProgress: `${assetRoot}/agent-2/icons/thinking-progress.png`,
   thinkingComplete: `${assetRoot}/agent-2/icons/thinking-complete.svg`,

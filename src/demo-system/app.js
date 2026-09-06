@@ -8,26 +8,27 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260906b';
-import { media } from './data/assets.js?v=20260906b';
-import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906b';
-import { TaskDialogs } from './components/task-dialogs.js?v=20260906b';
-import { ConversationSettingsModal } from './components/navigation.js?v=20260906b';
-import { escapeHtml } from './ui/primitives.js?v=20260906b';
-import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906b';
-import { artifactContent } from './artifacts/content.js?v=20260906b';
-import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906b';
-import { readStructuredEntry } from './components/composer.js?v=20260906b';
-import { skillById } from './scenarios/skills.js?v=20260906b';
-import { replaceDocumentReference } from './artifacts/document.js?v=20260906b';
-import { phasesAfterRun } from './scenarios/decisions.js?v=20260906b';
-import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906b';
-import { HomeTemplate } from './templates/home.js?v=20260906b';
-import { StudioTemplate } from './templates/studio.js?v=20260906b';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260906b';
-import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906b';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906b';
-import { formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906b';
+} from './scenarios/luosifen.js?v=20260906c';
+import { media } from './data/assets.js?v=20260906c';
+import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906c';
+import { TaskDialogs } from './components/task-dialogs.js?v=20260906c';
+import { ConversationSettingsModal } from './components/navigation.js?v=20260906c';
+import { escapeHtml } from './ui/primitives.js?v=20260906c';
+import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906c';
+import { artifactContent } from './artifacts/content.js?v=20260906c';
+import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906c';
+import { readStructuredEntry } from './components/composer.js?v=20260906c';
+import { Message } from './components/messages.js?v=20260906c';
+import { skillById } from './scenarios/skills.js?v=20260906c';
+import { replaceDocumentReference } from './artifacts/document.js?v=20260906c';
+import { phasesAfterRun } from './scenarios/decisions.js?v=20260906c';
+import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906c';
+import { HomeTemplate } from './templates/home.js?v=20260906c';
+import { StudioTemplate } from './templates/studio.js?v=20260906c';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260906c';
+import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906c';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906c';
+import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906c';
 import {
   ArtifactView,
   artifactById,
@@ -35,7 +36,7 @@ import {
   createArtifactWorkspace,
   getArtifactType,
   openArtifactTab,
-} from './artifacts/model.js?v=20260906b';
+} from './artifacts/model.js?v=20260906c';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -364,6 +365,7 @@ function syncDraft() {
   const structured = document.querySelector('[data-role="structured-input"]');
   if (structured) {
     state.input = readStructuredEntry(structured, state.input);
+    structured.dataset.empty = String(!structured.textContent.trim());
     state.draft = inputText(state.input);
     state.attachment = inputReferences(state.input)[0] || null;
     return;
@@ -494,7 +496,7 @@ function streamAssistantNode(node, runToken, onComplete) {
       activeRunOutputTimer = window.setTimeout(() => {
         activeRunOutputTimer = null;
         onComplete();
-      }, 160);
+      }, 700);
       return;
     }
 
@@ -511,7 +513,7 @@ function streamAssistantNode(node, runToken, onComplete) {
     activeRunOutputTimer = window.setTimeout(writeNext, delay);
   };
 
-  activeRunOutputTimer = window.setTimeout(writeNext, 120);
+  activeRunOutputTimer = window.setTimeout(writeNext, 250);
 }
 
 function revealRunOutputs(run, runId, runToken) {
@@ -545,7 +547,7 @@ function revealRunOutputs(run, runId, runToken) {
     state.artifacts = publishArtifacts(state.artifacts, [node], scenarioArtifacts, state, runId);
     state.messages = appendConversationNodes(state.messages, [node]);
     render({ scrollToEnd: true });
-    activeRunOutputTimer = window.setTimeout(() => revealAt(index + 1), 220);
+    activeRunOutputTimer = window.setTimeout(() => revealAt(index + 1), 700);
   };
   revealAt(0);
 }
@@ -556,6 +558,7 @@ function runAgentStage(runId, specification = null) {
   cancelActiveRun();
   const runToken = activeRunToken;
   const simulation = getRunSimulationPlan(run);
+  const timeline = createExecutionTimeline(run).map((item) => ({ ...item, block: item.block.type === 'text' ? { ...item.block, text: personalizeText(item.block.text, state) } : item.block }));
   const progress = run.thinking;
   state.pendingRun = runId;
   state.pendingRunSpec = scenarioRuns[runId] ? null : run;
@@ -586,8 +589,8 @@ function runAgentStage(runId, specification = null) {
       type: ConversationEvent.RUN_COMPLETED,
       runId,
       detail: run.elapsed,
-      steps: run.execution?.completedSteps,
-      blocks: run.execution?.completedBlocks,
+      steps: run.execution ? [] : undefined,
+      blocks: run.execution ? executionFrame(timeline, Infinity).blocks : undefined,
     });
     render({ scrollToEnd: true });
     activeRunOutputTimer = window.setTimeout(() => {
@@ -604,15 +607,18 @@ function runAgentStage(runId, specification = null) {
     state.messages = applyConversationEvent(state.messages, {
       type: ConversationEvent.TOOL_STARTED,
       runId,
-      ...run.execution,
-      thought: personalizeText(run.execution.thought, state),
+      title: run.execution.title,
+      thought: '',
+      steps: [],
+      blocks: [],
       detail: formatLiveElapsed(elapsedSeconds),
     });
     render({ scrollToEnd: true });
   };
   const tick = () => {
     if (runToken !== activeRunToken) return;
-    const elapsedSeconds = Math.min(simulation.durationSeconds, Math.floor((performance.now() - startedAt) / 1000));
+    const elapsedMs = performance.now() - startedAt;
+    const elapsedSeconds = Math.min(simulation.durationSeconds, Math.floor(elapsedMs / 1000));
     if (elapsedSeconds !== previousElapsed) {
       const detail = formatLiveElapsed(elapsedSeconds);
       previousElapsed = elapsedSeconds;
@@ -630,10 +636,25 @@ function runAgentStage(runId, specification = null) {
       dispatchedSimulationEvents.add(index);
       dispatchSimulationEvent(scheduledEvent, elapsedSeconds);
     });
+    if (timeline.length && dispatchedSimulationEvents.size) {
+      state.messages = applyConversationEvent(state.messages, {
+        type: ConversationEvent.UPDATE,
+        id: `run-${runId}`,
+        patch: executionFrame(timeline, elapsedMs),
+      });
+      const target = document.querySelector(`[data-editor-id="run-${runId}"]`);
+      const scroll = document.querySelector('[data-role="conversation-scroll"]');
+      const follow = scroll && scroll.scrollHeight - scroll.scrollTop - scroll.clientHeight < 80;
+      if (target) {
+        const message = state.messages.find((message) => message.id === `run-${runId}`);
+        target.outerHTML = Message({ ...message, editorSelected: state.editor.enabled && state.editor.selectedId === message.id }, state.artifacts);
+      }
+      if (follow) scroll.scrollTop = scroll.scrollHeight;
+    }
     if (elapsedSeconds >= simulation.durationSeconds) completeRun();
   };
   tick();
-  activeRunTimer = window.setInterval(tick, 200);
+  activeRunTimer = window.setInterval(tick, 60);
 }
 
 function advanceScenario(text, interactionId = null) {
@@ -1240,9 +1261,9 @@ app.addEventListener('click', async (event) => {
 
 document.addEventListener('keydown', (event) => {
   if (event.target.closest?.('.conversation-editor')) return;
-  if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
-    if (state.busy || state.readOnly || state.dialog || state.settingsOpen) return;
+  if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229 && !event.target.closest?.('button') && event.target.closest?.('[data-role="structured-input"], [data-role="composer-input"]')) {
     event.preventDefault();
+    if (event.repeat || state.busy || state.readOnly || state.dialog || state.settingsOpen) return;
     syncDraft();
     if (state.page === 'home' || state.taskMode === 'new') startScenario();
     else if (state.draft.trim()) advanceScenario(state.draft.trim(), implicitInteractionByRun[state.scenarioStage] || null);

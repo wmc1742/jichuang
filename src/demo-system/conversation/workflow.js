@@ -1,6 +1,6 @@
-import { mockDecisionRules, recognizeMockIntent } from '../scenarios/decisions.js?v=20260906b';
-import { artifactContent } from '../artifacts/content.js?v=20260906b';
-import { referencedDocumentArtifacts } from '../artifacts/document.js?v=20260906b';
+import { mockDecisionRules, recognizeMockIntent } from '../scenarios/decisions.js?v=20260906c';
+import { artifactContent } from '../artifacts/content.js?v=20260906c';
+import { referencedDocumentArtifacts } from '../artifacts/document.js?v=20260906c';
 
 export function nextConversationAction({ messages, workflow, pendingRun }, text) {
   if (pendingRun) return { type: 'resume', runId: pendingRun };
