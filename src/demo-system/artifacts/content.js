@@ -1,6 +1,6 @@
-import { media } from '../data/assets.js?v=20260906d';
-import { createDocumentFixture } from '../scenarios/documents.js?v=20260906d';
-import { migrateDocument } from './document.js?v=20260906d';
+import { media } from '../data/assets.js?v=20260906e';
+import { createDocumentFixture } from '../scenarios/documents.js?v=20260906e';
+import { migrateDocument } from './document.js?v=20260906e';
 
 export function artifactContent(artifact, state = {}) {
   const product = state.product?.title || '即创螺蛳粉';

@@ -1,4 +1,4 @@
-import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906d';
+import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906e';
 
 export function CheckboxOption({ name, label, value = label, checked = false, disabled = false }) {
   return `

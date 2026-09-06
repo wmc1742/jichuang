@@ -1,4 +1,4 @@
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906d';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906e';
 
 export function ProductHeader() {
   return `
@@ -20,7 +20,7 @@ export function TaskSidebar({ activeTask = 'existing', tasks = [], taskId, sideb
   return `
     <aside class="task-sidebar ${mobileTasksOpen ? 'mobile-tasks-open' : ''}">
       <div class="task-sidebar__head">
-        <button class="brand-lockup" data-action="${sidebarCollapsed || compactTaskRail ? 'toggle-sidebar' : 'home'}" aria-label="${sidebarCollapsed || compactTaskRail ? '展开或收起任务管理' : '返回首页'}">${Icon('logoMark')} ${Icon('logoWord')}</button>
+        <button class="brand-lockup ${sidebarCollapsed || compactTaskRail ? 'is-compact' : ''}" data-action="${sidebarCollapsed || compactTaskRail ? 'toggle-sidebar' : 'home'}" aria-label="${sidebarCollapsed || compactTaskRail ? '展开或收起任务管理' : '返回首页'}">${Icon('logoMark')} ${Icon('logoWord')}</button>
         ${IconButton({ icon: 'collapse', label: '收起任务管理', action: 'toggle-sidebar', className: 'sidebar-collapse' })}
       </div>
       <button class="new-task ${isNewTask ? 'is-active' : ''}" data-action="new-task" aria-label="新建项目">${Icon('newTask')}<span>新建项目</span></button>

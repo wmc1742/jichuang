@@ -1,4 +1,4 @@
-import { media } from '../data/assets.js?v=20260906d';
+import { media } from '../data/assets.js?v=20260906e';
 
 const productQuery = (text) => [{ type: 'text', text: '根据 ' }, { type: 'slot', accepts: 'product', label: '添加商品', required: true }, { type: 'text', text }];
 const materialQuery = (text) => [{ type: 'text', text: '根据 ' }, { type: 'slot', accepts: 'material', label: '添加素材', required: true }, { type: 'text', text }];
@@ -14,3 +14,14 @@ export const skills = [
 ];
 
 export const skillById = (id) => skills.find((skill) => skill.id === id || skill.name === id || skill.aliases?.includes(id));
+
+export const skillCategories = ['全部', '我的', '创意成片', '创意素材', '创意洞察'];
+const categories = { 'campaign-video': '创意成片', cleaning: '创意成片', outfit: '创意成片', variations: '创意成片', scene: '创意素材', 'selling-points': '创意洞察' };
+export function availableSkills(state = {}) {
+  return [...skills.map((skill) => ({ ...skill, category: categories[skill.id], previewPoster: media.skillPreview })), ...(state.customSkills || [])];
+}
+export function filteredSkills(state = {}) {
+  const query = (state.skillSearch || '').trim().toLowerCase();
+  return availableSkills(state).filter((skill) => (!query || `${skill.name} ${skill.description}`.toLowerCase().includes(query))
+    && (!state.skillCategory || state.skillCategory === '全部' || (state.skillCategory === '我的' ? skill.localPackage : skill.category === state.skillCategory)));
+}

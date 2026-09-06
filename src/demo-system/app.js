@@ -8,28 +8,28 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260906d';
-import { media } from './data/assets.js?v=20260906d';
-import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906d';
-import { TaskDialogs } from './components/task-dialogs.js?v=20260906d';
-import { ConversationSettingsModal } from './components/navigation.js?v=20260906d';
-import { escapeHtml } from './ui/primitives.js?v=20260906d';
-import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906d';
-import { artifactContent } from './artifacts/content.js?v=20260906d';
-import { beginActorDrill, finishActorDrill, ensureActorDraft } from './artifacts/editing.js?v=20260906d';
-import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906d';
-import { readStructuredEntry } from './components/composer.js?v=20260906d';
-import { Message } from './components/messages.js?v=20260906d';
-import { skillById } from './scenarios/skills.js?v=20260906d';
-import { replaceDocumentReference } from './artifacts/document.js?v=20260906d';
-import { phasesAfterRun } from './scenarios/decisions.js?v=20260906d';
-import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906d';
-import { HomeTemplate } from './templates/home.js?v=20260906d';
-import { StudioTemplate } from './templates/studio.js?v=20260906d';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260906d';
-import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906d';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906d';
-import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906d';
+} from './scenarios/luosifen.js?v=20260906e';
+import { media } from './data/assets.js?v=20260906e';
+import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906e';
+import { TaskDialogs } from './components/task-dialogs.js?v=20260906e';
+import { ConversationSettingsModal } from './components/navigation.js?v=20260906e';
+import { escapeHtml } from './ui/primitives.js?v=20260906e';
+import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906e';
+import { artifactContent } from './artifacts/content.js?v=20260906e';
+import { beginActorDrill, finishActorDrill, ensureActorDraft } from './artifacts/editing.js?v=20260906e';
+import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906e';
+import { readStructuredEntry } from './components/composer.js?v=20260906e';
+import { Message } from './components/messages.js?v=20260906e';
+import { skillById, availableSkills } from './scenarios/skills.js?v=20260906e';
+import { replaceDocumentReference } from './artifacts/document.js?v=20260906e';
+import { phasesAfterRun } from './scenarios/decisions.js?v=20260906e';
+import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906e';
+import { HomeTemplate } from './templates/home.js?v=20260906e';
+import { StudioTemplate } from './templates/studio.js?v=20260906e';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260906e';
+import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906e';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906e';
+import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906e';
 import {
   ArtifactView,
   artifactById,
@@ -37,7 +37,7 @@ import {
   createArtifactWorkspace,
   getArtifactType,
   openArtifactTab,
-} from './artifacts/model.js?v=20260906d';
+} from './artifacts/model.js?v=20260906e';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
@@ -255,6 +255,7 @@ if (window.location.hash.startsWith('#task=')) {
 }
 
 const app = document.querySelector('#app');
+try { const saved = JSON.parse(localStorage.getItem('aic-agent-local-skills-v1') || '[]'); state.customSkills = Array.isArray(saved) ? saved : []; } catch { state.customSkills = []; }
 state.artifactWorkspace.loadingArtifactId = null;
 state.artifactWorkspace.playing = false;
 if (state.editor.enabled) state.editor.sourceMessages = structuredClone(state.messages);
@@ -780,7 +781,14 @@ app.addEventListener('input', (event) => {
     if (send) send.disabled = state.busy || !validateInput(state.input).valid;
     persistCurrentTask();
   }
-  if (event.target.matches('[data-product-search], [data-skill-search]')) {
+  if (event.target.matches('[data-skill-search]')) {
+    const position = event.target.selectionStart;
+    state.skillSearch = event.target.value;
+    render();
+    const input = document.querySelector('[data-skill-search]');
+    input?.focus(); input?.setSelectionRange(position, position);
+  }
+  if (event.target.matches('[data-product-search]')) {
     const query = event.target.value.trim();
     document.querySelectorAll('.product-library-item, .skill-library > button').forEach((item) => { item.hidden = !item.textContent.includes(query); });
   }
@@ -828,19 +836,75 @@ app.addEventListener('input', (event) => {
   }
 });
 
+function updateSkillPreview(event) {
+  const option = event.target.closest('[data-preview-skill]');
+  if (!option || state.previewSkillId === option.dataset.previewSkill) return;
+  state.previewSkillId = option.dataset.previewSkill;
+  const skill = availableSkills(state).find((item) => item.id === state.previewSkillId);
+  document.querySelectorAll('[data-preview-skill]').forEach((item) => item.classList.toggle('is-active', item === option));
+  const video = document.querySelector('.skill-picker-preview');
+  if (video && skill) {
+    video.poster = skill.previewPoster || media.skillPreview;
+    if (skill.previewUrl) { video.src = skill.previewUrl; video.play().catch(() => {}); }
+    else { video.removeAttribute('src'); video.load(); }
+  }
+}
+app.addEventListener('mouseover', updateSkillPreview);
+app.addEventListener('focusin', updateSkillPreview);
+app.addEventListener('timeupdate', updateEditorPlayback, true);
+app.addEventListener('loadedmetadata', updateEditorPlayback, true);
+app.addEventListener('ended', updateEditorPlayback, true);
+function updateEditorPlayback(event) {
+  if (!event.target.matches('[data-editor-video]')) return;
+  const video = event.target;
+  const format = (seconds) => `${Math.floor((seconds || 0) / 60).toString().padStart(2, '0')}:${Math.floor((seconds || 0) % 60).toString().padStart(2, '0')}`;
+  const label = app.querySelector('[data-editor-time]');
+  if (label) label.textContent = `${format(video.currentTime)} / ${format(Number.isFinite(video.duration) ? video.duration : 0)}`;
+  const play = app.querySelector('[data-action="editor-video-play"]');
+  if (play) { play.setAttribute('aria-pressed', String(!video.paused)); play.setAttribute('aria-label', video.paused ? '播放' : '暂停'); }
+}
+
 app.addEventListener('change', async (event) => {
   if (state.readOnly) return;
   if (event.target.matches('[data-upload]')) {
     const file = event.target.files?.[0];
     if (!file) return;
+    if (event.target.dataset.upload === 'skill-package') {
+      if (!file.name.toLowerCase().endsWith('.zip') || file.size > 50 * 1024 * 1024) { notify('请选择 50MB 以内的 ZIP 技能包'); render(); return; }
+      try {
+        const localPackage = await storeMedia(file);
+        state.customSkills.push({ id: `local-skill-${Date.now()}`, name: file.name.replace(/\.zip$/i, ''), description: '', category: '我的', localPackage, previewPoster: media.skillPreview, query: [] });
+        localStorage.setItem('aic-agent-local-skills-v1', JSON.stringify(state.customSkills));
+        state.skillCategory = '我的';
+        notify('技能包已保存到此浏览器，执行服务尚未接入');
+      } catch { notify('技能包保存失败'); }
+      render(); return;
+    }
     if (file.size > 50 * 1024 * 1024 || !/^(image|video)\//.test(file.type)) { notify('请选择 50MB 以内的图片或视频'); render(); return; }
     const taskId = state.taskId;
     const uploadKind = event.target.dataset.upload;
+    const sceneDraft = ['scene-video', 'scene-reference'].includes(uploadKind) ? state.artifactDraft : null;
+    const sceneIndex = state.activeScene || 0;
+    if (['scene-video', 'scene-reference'].includes(uploadKind) && (!sceneDraft?.scenes?.[sceneIndex] || !file.type.startsWith(uploadKind === 'scene-video' ? 'video/' : 'image/'))) return;
     const actorDraft = uploadKind === 'actor-variant' ? ensureActorDraft(state) : null;
     if (uploadKind === 'actor-variant' && (!actorDraft || !file.type.startsWith('image/'))) return;
     try {
       const url = await storeMedia(file);
       if (taskId !== state.taskId) return;
+      if (sceneDraft) {
+        if (sceneDraft !== state.artifactDraft) return;
+        const scene = sceneDraft.scenes[sceneIndex];
+        if (uploadKind === 'scene-video') {
+          scene.variants ||= [{ image: scene.image, mediaUrl: scene.mediaUrl || sceneDraft.mediaUrl, generated: true }];
+          scene.variants.push({ mediaUrl: url, title: file.name, generated: false });
+          scene.variantIndex = scene.variants.length - 1;
+          scene.mediaUrl = url;
+        } else {
+          scene.references ||= [{ image: sceneDraft.productImage, title: sceneDraft.productName }, { image: sceneDraft.actor?.previewUrl, title: sceneDraft.actor?.title }].filter((item) => item.image);
+          scene.references.push({ image: url, title: file.name });
+        }
+        render(); return;
+      }
       if (uploadKind === 'actor-variant') {
         const currentDraft = state.artifactWorkspace.activeView === ArtifactView.DRILL ? state.artifactDraft?.actor : state.artifactDraft;
         if (currentDraft !== actorDraft) return;
@@ -881,6 +945,7 @@ app.addEventListener('change', async (event) => {
 });
 
 app.addEventListener('click', async (event) => {
+  if (event.target.classList.contains('skill-popover-backdrop')) { state.dialog = null; render(); return; }
   if (state.editor.enabled && !event.target.closest('.conversation-editor')) {
     const editable = event.target.closest('[data-editor-id]');
     if (editable) {
@@ -896,12 +961,26 @@ app.addEventListener('click', async (event) => {
   if (!target) return;
   syncDraft();
   const action = target.dataset.action;
+  if (action === 'editor-video-play' || action === 'editor-video-mute') {
+    const video = app.querySelector('[data-editor-video]');
+    if (!video) return;
+    if (action === 'editor-video-play') { if (video.paused) await video.play().catch(() => notify('视频暂时无法播放')); else video.pause(); }
+    else { video.muted = !video.muted; target.setAttribute('aria-pressed', String(video.muted)); target.setAttribute('aria-label', video.muted ? '取消静音' : '静音'); }
+    updateEditorPlayback({ target: video });
+    return;
+  }
   const readOnlyActions = ['open-artifact-list', 'close-workbench', 'toggle-workbench-size', 'artifact-root', 'toggle-artifact-list-mode', 'activate-artifact-tab', 'close-artifact-tab', 'set-artifact-type', 'open-artifact', 'open-document', 'open-video', 'open-image', 'open-actor', 'toggle-status', 'toggle-run', 'toggle-play', 'new-task', 'toggle-sidebar'];
   if (state.readOnly && !readOnlyActions.includes(action)) { notify('这是只读任务快照'); render(); return; }
 
   if (action === 'close-dialog') state.dialog = null;
   else if (action === 'open-upload') state.dialog = 'upload';
-  else if (action === 'open-skills') state.dialog = 'skills';
+  else if (action === 'open-skills') {
+    const anchor = target.getBoundingClientRect();
+    state.skillAnchor = { x: Math.max(12, Math.min(anchor.left, innerWidth - 520)), y: anchor.bottom + 12 + 322 < innerHeight ? anchor.bottom + 12 : Math.max(12, anchor.top - 334) };
+    state.dialog = 'skills';
+    state.skillSearch = '';
+  }
+  else if (action === 'filter-skills') { state.skillCategory = target.dataset.category; state.previewSkillId = null; }
   else if (action === 'clear-skill') setInput(removeInputSkill(state.input));
   else if (action === 'fill-input-slot') { state.inputSlotId = target.dataset.slot; state.dialog = target.dataset.accepts === 'product' ? 'product' : 'upload'; state.selectedProduct = null; }
   else if (action === 'remove-input-reference') setInput(removeInputReference(state.input, target.dataset.part));
@@ -935,9 +1014,14 @@ app.addEventListener('click', async (event) => {
     pauseCurrentTask(); notify('已停止，已生成的内容保留');
   } else if (action === 'resume-run') { runAgentStage(state.pendingRun); return; }
   else if (action === 'select-scene') { state.activeScene = Number(target.dataset.index); }
-  else if (action === 'add-scene' && state.artifactDraft) {
-    state.artifactDraft.scenes.push({ image: state.product?.thumbnail || media.product, text: '请填写新画面的描述' });
-    state.activeScene = state.artifactDraft.scenes.length - 1;
+  else if (action === 'select-scene-variant' && state.artifactDraft) {
+    const scene = state.artifactDraft.scenes[state.activeScene || 0];
+    const variant = scene?.variants?.[Number(target.dataset.index)];
+    if (variant) { scene.variantIndex = Number(target.dataset.index); scene.mediaUrl = variant.mediaUrl; if (variant.image) scene.image = variant.image; }
+  } else if (action === 'regenerate-scene') {
+    notify('描述已保存在草稿中，视频生成服务尚未接入');
+  } else if (action === 'video-tool-boundary') {
+    notify(`${target.dataset.tool}的后续编辑面板尚未校准，暂不提供模拟操作`);
   } else if (action === 'choose-actor-variant') {
     const draft = ensureActorDraft(state);
     const option = draft?.appearanceOptions?.[Number(target.dataset.index)];
@@ -1090,7 +1174,8 @@ app.addEventListener('click', async (event) => {
     state.projectMenuOpen = false;
     state.dialog = 'delete';
   } else if (action === 'toggle-sidebar') {
-    if (state.compactTaskRail) state.mobileTasksOpen = !state.mobileTasksOpen;
+    if (innerWidth >= 1200 && document.querySelector('.has-media-editor')) state.mediaTaskRailExpanded = !state.mediaTaskRailExpanded;
+    else if (state.compactTaskRail) state.mobileTasksOpen = !state.mobileTasksOpen;
     else state.sidebarCollapsed = !state.sidebarCollapsed;
   } else if (action === 'select-product') {
     state.selectedProduct = null;
@@ -1099,7 +1184,7 @@ app.addEventListener('click', async (event) => {
     const reference = state.input.parts.find((part) => part.type === 'reference');
     if (reference) setInput(removeInputReference(state.input, reference.id));
   } else if (action === 'choose-skill') {
-    const skill = skillById(target.dataset.skill);
+    const skill = availableSkills(state).find((item) => item.id === target.dataset.skill || item.name === target.dataset.skill) || skillById(target.dataset.skill);
     if (!skill) return;
     const references = inputReferences(state.input);
     let input = selectInputSkill(state.input, skill);
@@ -1291,6 +1376,7 @@ app.addEventListener('click', async (event) => {
 
 document.addEventListener('keydown', (event) => {
   if (event.target.closest?.('.conversation-editor')) return;
+  if (event.key === 'Escape' && (state.dialog || state.settingsOpen)) { state.dialog = null; state.settingsOpen = false; render(); return; }
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229 && !event.target.closest?.('button') && event.target.closest?.('[data-role="structured-input"], [data-role="composer-input"]')) {
     event.preventDefault();
     if (event.repeat || state.busy || state.readOnly || state.dialog || state.settingsOpen) return;

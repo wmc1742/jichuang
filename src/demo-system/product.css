@@ -1,11 +1,53 @@
 .new-task-skill-rail { display: block; height: auto; max-width: 840px; }
+@media (min-width: 1200px) {
+  .agent-shell.has-media-editor { --agent-sidebar: 54px; grid-template-columns: 54px minmax(320px, 1fr) minmax(560px, 920px); }
+  .agent-shell.has-media-editor.media-rail-expanded { --agent-sidebar: 180px; grid-template-columns: 180px minmax(320px, 1fr) minmax(560px, 920px); }
+  .has-media-editor:not(.media-rail-expanded) .task-sidebar .brand-lockup .aic-icon:last-child, .has-media-editor:not(.media-rail-expanded) .task-sidebar .new-task span:last-child, .has-media-editor:not(.media-rail-expanded) .recent-tasks, .has-media-editor:not(.media-rail-expanded) .sidebar-collapse { display: none; }
+  .has-media-editor:not(.media-rail-expanded) .task-sidebar__head, .has-media-editor:not(.media-rail-expanded) .new-task { justify-content: center; }
+}
+.brand-lockup.is-compact { position: relative; }
+.brand-lockup.is-compact::after { content: ''; position: absolute; inset: 0; margin: auto; width: 12px; height: 12px; background: url('../../assets/agent-2/icons/collapse.svg') center / contain no-repeat; opacity: 0; }
+.brand-lockup.is-compact:hover::after, .brand-lockup.is-compact:focus-visible::after { opacity: 1; }
+.brand-lockup.is-compact:hover > .aic-icon, .brand-lockup.is-compact:focus-visible > .aic-icon { opacity: 0; }
+@media (max-width: 760px) {
+  .video-editor-layout { height: auto; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .video-editor-player { width: min(100%, 288px); aspect-ratio: 9 / 16; justify-self: center; }
+  .video-editor-controls { min-height: 440px; }
+  .video-editor-timeline { flex-wrap: wrap; }
+  .video-editor-tools { margin-left: 0; }
+  .video-editor-prompt footer { flex-wrap: wrap; }
+  .video-prompt-send { width: 100%; }
+}
 .new-task-skill > img:not(.aic-icon) { width: 30px; height: 30px; object-fit: cover; border-radius: 10px; }
 .new-task-skill > .aic-icon { width: 14px; height: 14px; }
 .skill-choice { position: relative; }
-.skill-preview { display: none; pointer-events: none; position: absolute; z-index: 20; bottom: calc(100% + 12px); left: 50%; transform: translateX(-50%); width: 220px; padding: 12px; border-radius: 12px; background: #ece6ff; color: #282330; box-shadow: 0 8px 32px #0006; }
-.skill-preview > img { width: 100%; height: 126px; object-fit: cover; border-radius: 6px; }
-.skill-preview p { font-size: 12px; line-height: 20px; }
-.skill-choice:hover .skill-preview, .skill-choice:focus-within .skill-preview { display: block; }
+.skill-preview { display: none; pointer-events: none; position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; width: 240px; height: 186px; gap: 8px; align-items: center; padding: 4px; border: 1px solid #ffffff4d; border-radius: 12px; background: #e3e4ff; color: #000; }
+.skill-preview > video { flex: 0 0 120px; width: 120px; height: 176px; object-fit: cover; border-radius: 8px; }
+.skill-preview > div { min-width: 0; font-size: 12px; line-height: 17px; }
+.skill-preview b { font-weight: 500; }
+.skill-preview p { margin: 8px 0 0; font-size: 12px; line-height: 17px; }
+.skill-choice:hover .skill-preview, .skill-choice:focus-within .skill-preview { display: flex; }
+.skill-popover-backdrop { position: fixed; inset: 0; z-index: 90; }
+.skill-popover { position: absolute; left: var(--anchor-x); top: var(--anchor-y); width: 508px; max-width: calc(100vw - 24px); padding: 12px; border: 1px solid #ffffff4d; border-radius: 12px; background: #e3e4ff; color: #000; box-shadow: 0 8px 24px #0003; }
+.skill-search { display: flex; align-items: center; gap: 4px; height: 36px; padding: 8px 12px; border: 1px solid #ffffff14; border-radius: 8px; }
+.skill-search .aic-icon { width: 20px; height: 20px; }
+.skill-search input { min-width: 0; width: 100%; border: 0; outline: none; background: transparent; color: #000; font-size: 14px; }
+.skill-picker-layout { display: grid; grid-template-columns: 80px minmax(0, 200px) minmax(0, 170px); gap: 16px; height: 248px; margin-top: 12px; }
+.skill-picker-nav { display: flex; flex-direction: column; justify-content: space-between; }
+.skill-picker-nav nav { display: flex; flex-direction: column; gap: 4px; padding: 4px; border-radius: 8px; background: #00000004; }
+.skill-picker-nav button, .skill-import { display: flex; align-items: center; height: 36px; padding: 8px; border-radius: 8px; background: transparent; color: #0009; white-space: nowrap; }
+.skill-picker-nav button.is-active { background: #7244e5; color: #fff; }
+.skill-import { position: relative; background: #00000004; color: #000; cursor: pointer; padding-left: 12px; }
+.skill-import input { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; }
+.skill-picker-list { overflow-y: auto; scrollbar-width: thin; display: flex; flex-direction: column; gap: 4px; }
+.skill-picker-list > button { flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 8px; min-height: 36px; border: 1px solid transparent; border-radius: 8px; background: transparent; color: #0006; text-align: left; }
+.skill-picker-list strong { font-weight: 400; font-size: 14px; line-height: 20px; }
+.skill-picker-list span { display: none; font-size: 12px; line-height: 17px; }
+.skill-picker-list > button.is-active { color: #000; border-color: #c5bcff; background: #d4ccff; }
+.skill-picker-list > button.is-active span { display: block; }
+.skill-picker-preview { width: 100%; height: 248px; border-radius: 8px; object-fit: cover; }
+.skill-picker-empty { margin: 8px; color: #0006; font-size: 14px; }
+@media (max-width: 540px) { .skill-picker-layout { grid-template-columns: 72px minmax(0, 1fr); gap: 8px; } .skill-picker-preview { display: none; } }
 .composer__entry:has(.composer-input) { display: block; bottom: 64px; min-height: 0; }
 .composer-input { width: 100%; height: 100%; min-height: 36px; overflow-y: auto; outline: none; color: #fff; font-size: var(--composer-font-size); line-height: 36px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .composer-input[data-empty="true"]:not(:focus-within)::before { content: attr(data-placeholder); color: #ffffff66; pointer-events: none; }
@@ -54,10 +96,6 @@
 .product-library-item > img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
 .product-library-item > span { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .product-library-item > input { position: absolute; top: 12px; right: 12px; accent-color: #7440e8; pointer-events: none; }
-.skill-library { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 20px; }
-.skill-library > button { display: grid; grid-template-columns: 64px 1fr; gap: 8px; padding: 12px; border: 1px solid #ffffff12; border-radius: 8px; background: #ffffff06; text-align: left; }
-.skill-library img { grid-row: span 2; width: 64px; height: 64px; border-radius: 6px; object-fit: cover; }
-.skill-library span { font-size: 12px; line-height: 18px; color: #bab5c5; }
 .upload-choices { display: flex; flex-direction: column; gap: 8px; }
 .upload-choices label, .upload-choices button { display: flex; align-items: center; gap: 12px; padding: 14px; border-radius: 8px; background: #ffffff08; cursor: pointer; }
 .upload-choices img { width: 20px; height: 20px; }
@@ -92,11 +130,6 @@
 .artifact-document.is-editing textarea { min-height: 72px; font-size: 14px; }
 .artifact-revision { display: block; margin-top: 20px; color: #918a9e; font-size: 12px; }
 video.artifact-video-stage { display: block; width: min(100%, 420px); height: auto; max-height: calc(100dvh - 180px); aspect-ratio: 9/16; margin: 16px auto; background: #000; object-fit: contain; }
-.video-editor-frames { display: flex; overflow-x: auto; }
-.video-editor-frames button { flex: 0 0 84px; }
-.video-editor-layout { min-height: 0; }
-.video-editor-player { min-height: 280px; aspect-ratio: 9/16; }
-.video-editor-player > img { object-fit: contain; }
 .artifact-detail-title h1 { overflow-wrap: anywhere; }
 .settings-row--ratio label { display: flex; gap: 8px; align-items: center; }
 @media (max-width: 1199px) {
@@ -141,7 +174,6 @@ video.artifact-video-stage { display: block; width: min(100%, 420px); height: au
   .video-editor-layout, .actor-detail-layout { grid-template-columns: 1fr; }
   .actor-detail-hero { max-width: 230px; justify-self: center; }
   .artifact-detail--drill > .artifact-editor-head { position: sticky; z-index: 2; top: 0; background: #242128; }
-  .video-editor-player { max-height: 320px; }
   .task-dialog-backdrop { padding: 12px; }
   .task-dialog { padding: 20px; max-height: calc(100dvh - 24px); }
   .product-library { grid-template-columns: repeat(2, minmax(0, 1fr)); }

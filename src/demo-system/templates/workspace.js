@@ -1,11 +1,11 @@
-import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906d';
-import { Composer } from '../components/composer.js?v=20260906d';
-import { MessageFeed } from '../components/messages.js?v=20260906d';
-import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906d';
-import { ConversationEditor } from '../components/conversation-editor.js?v=20260906d';
-import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906d';
-import { SkillChoices } from '../components/task-dialogs.js?v=20260906d';
-import { escapeHtml } from '../ui/primitives.js?v=20260906d';
+import { ArtifactWorkbench } from '../components/artifacts.js?v=20260906e';
+import { Composer } from '../components/composer.js?v=20260906e';
+import { MessageFeed } from '../components/messages.js?v=20260906e';
+import { ConversationHeader, TaskSidebar } from '../components/navigation.js?v=20260906e';
+import { ConversationEditor } from '../components/conversation-editor.js?v=20260906e';
+import { getActiveComposerQuestion, getFeedMessages } from '../conversation/component-registry.js?v=20260906e';
+import { SkillChoices } from '../components/task-dialogs.js?v=20260906e';
+import { escapeHtml } from '../ui/primitives.js?v=20260906e';
 
 function NewTaskTemplate(state) {
   return `
@@ -27,11 +27,13 @@ export function WorkspaceTemplate(state) {
   if (state.taskMode === 'new' && state.messages.length === 0) return NewTaskTemplate(state);
   const editorOpen = Boolean(state.editor?.enabled);
   const workbenchOpen = !editorOpen && Boolean(state.artifactWorkspace?.open);
+  const activeArtifact = state.artifacts.find((item) => item.id === state.artifactWorkspace?.activeTabId);
+  const mediaEditor = workbenchOpen && (activeArtifact?.type === 'preview' || (activeArtifact?.type === 'video' && state.artifactWorkspace.activeView === 'edit'));
   const confirmation = getActiveComposerQuestion(state.messages);
   const feedMessages = getFeedMessages(state.messages);
   return `
-    <div class="agent-shell ${workbenchOpen ? 'has-workbench' : ''} ${editorOpen ? 'is-editing' : ''} ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
-      ${TaskSidebar({ ...state, activeTask: 'existing' })}
+    <div class="agent-shell ${workbenchOpen ? 'has-workbench' : ''} ${mediaEditor ? `has-media-editor ${state.mediaTaskRailExpanded ? 'media-rail-expanded' : ''}` : ''} ${editorOpen ? 'is-editing' : ''} ${state.sidebarCollapsed ? 'sidebar-collapsed' : ''}">
+      ${TaskSidebar({ ...state, compactTaskRail: state.compactTaskRail || (mediaEditor && !state.mediaTaskRailExpanded), activeTask: 'existing' })}
       <section class="conversation-pane ${confirmation ? 'has-confirmation' : ''}">
         ${ConversationHeader({ projectMenuOpen: state.projectMenuOpen, title: state.projectTitle, editorEnabled: editorOpen, workbenchOpen })}
         <main class="conversation-scroll" data-role="conversation-scroll"><div class="conversation-column">${MessageFeed({ messages: feedMessages, artifacts: state.artifacts, busy: state.busy })}</div></main>

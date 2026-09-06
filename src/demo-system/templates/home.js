@@ -1,7 +1,7 @@
-import { media } from '../data/assets.js?v=20260906d';
-import { Composer } from '../components/composer.js?v=20260906d';
-import { ProductHeader, ProductRail } from '../components/navigation.js?v=20260906d';
-import { escapeHtml } from '../ui/primitives.js?v=20260906d';
+import { media } from '../data/assets.js?v=20260906e';
+import { Composer } from '../components/composer.js?v=20260906e';
+import { ProductHeader, ProductRail } from '../components/navigation.js?v=20260906e';
+import { escapeHtml } from '../ui/primitives.js?v=20260906e';
 
 const skills = ['大促营销视频', '商品卖点拆解', '口播脚本', '素材裂变', '爆款复刻', '场景优化'];
 const opportunities = [

@@ -1,5 +1,5 @@
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906d';
-import { validateInput } from '../composer/model.js?v=20260906d';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906e';
+import { validateInput } from '../composer/model.js?v=20260906e';
 
 function StructuredEntry(input) {
   const skill = input.skill ? `<span class="composer-skill" contenteditable="false" data-component="SkillTag">${escapeHtml(input.skill.name)}<button data-action="clear-skill" aria-label="移除技能">${Icon('close')}</button></span>` : '';

@@ -63,6 +63,8 @@
 
 ## Remaining boundaries (not completion claims)
 
+- The per-state Figma restoration audit is `src/demo-system/design/RESTORATION_AUDIT.md`; raw section/annotation inventory is `src/demo-system/design/figma-inventory.json`. Read both before extending any of the corrected states. Unfinished boundaries in that audit must not be reported as completed features.
+
 - The executable Mock scenario is the campaign-video task. Other skill presets retain their input composition but do not silently run this scenario.
 - Natural-language intent recognition is a small explicit Mock rule set, not an LLM. Arbitrary editing instructions are not automatically applied to documents; direct document editing works.
 - Conversation visual editing/API inspection is retained. Composer and document blocks have schema/source mappings, but their full visual inspector is not implemented in this change.

@@ -1,6 +1,6 @@
-import { media } from '../data/assets.js?v=20260906d';
-import { StructuredDocument } from './document-blocks.js?v=20260906d';
-import { artifactContent } from '../artifacts/content.js?v=20260906d';
+import { media } from '../data/assets.js?v=20260906e';
+import { StructuredDocument } from './document-blocks.js?v=20260906e';
+import { artifactContent } from '../artifacts/content.js?v=20260906e';
 import {
   ArtifactType,
   ArtifactView,
@@ -9,8 +9,8 @@ import {
   createArtifactWorkspace,
   generatedArtifactTypes,
   getArtifactType,
-} from '../artifacts/model.js?v=20260906d';
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906d';
+} from '../artifacts/model.js?v=20260906e';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906e';
 
 function workspaceState(state) {
   if (state.artifactWorkspace) return state.artifactWorkspace;
@@ -28,7 +28,7 @@ function ArtifactTabs(state, workspace) {
   const artifacts = state.artifacts || [];
   const rootActive = !workspace.activeTabId || [ArtifactView.CATEGORY, ArtifactView.LIST].includes(workspace.activeView);
   return `
-    <nav class="artifact-tabs" aria-label="已打开的产物">
+    <nav class="artifact-tabs ${workspace.openTabs.length > 3 ? 'is-crowded' : ''}" aria-label="已打开的产物">
       <button class="artifact-root-tab ${rootActive ? 'is-active' : ''} ${workspace.openTabs.length ? 'is-compact' : ''}" data-action="artifact-root" title="生成内容">
         ${Icon('artifactFolder')}<span>生成内容</span>
       </button>
@@ -136,15 +136,19 @@ function ImageDetail(artifact) {
 
 function VideoEditor(artifact, preview = false, activeScene = 0) {
   const scenes = artifact.scenes;
-  const index = Math.min(activeScene, scenes.length - 1);
+  if (!scenes.length) return '<div class="artifact-empty">暂无画面</div>';
+  const index = Math.max(0, Math.min(activeScene, scenes.length - 1));
+  const scene = scenes[index];
   const frames = scenes.map((scene) => scene.image);
-  return `<div class="artifact-detail artifact-detail--video-editor">
-    <div class="artifact-editor-head"><button data-action="cancel-artifact-edit">‹&nbsp; 返回</button><div>${preview ? DetailAction({ label: '≈100 生成成片', action: 'generate-preview-video', primary: true }) : `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`}</div></div>
+  const variants = scene.variants || [{ image: scene.image, mediaUrl: scene.mediaUrl || artifact.mediaUrl, generated: true }];
+  const references = scene.references || [{ image: artifact.productImage, title: artifact.productName }, { image: artifact.actor?.previewUrl, title: artifact.actor?.title }].filter((item) => item.image);
+  return `<div class="artifact-detail artifact-detail--video-editor" data-source-node="1184:130167">
+    <div class="artifact-editor-head"><button data-action="cancel-artifact-edit">${Icon('chevronRight')}返回</button><div>${preview ? DetailAction({ label: '≈100 生成成片', action: 'generate-preview-video', primary: true }) : `${DetailAction({ label: '取消', action: 'cancel-artifact-edit' })}${DetailAction({ label: '应用', action: 'apply-artifact-edit', primary: true })}`}</div></div>
     <div class="video-editor-layout">
-      <div class="video-editor-player"><img src="${escapeHtml(frames[index])}" alt="画面${index + 1}"></div>
-      <section class="video-editor-controls"><h2>画面${index + 1}</h2><div class="video-editor-scene-tabs"><button data-action="add-scene" aria-label="新增画面">${Icon('material')}</button><button class="is-active" data-action="select-scene" data-index="${index}"><em>AI</em><img src="${escapeHtml(frames[index])}" alt=""></button></div><div class="video-editor-prompt"><h3>编辑描述</h3><textarea data-artifact-field="scenes.${index}.text" aria-label="画面描述">${escapeHtml(scenes[index].text)}</textarea></div></section>
+      <div class="video-editor-player"><video data-editor-video playsinline preload="metadata" poster="${escapeHtml(scene.image)}" src="${escapeHtml(scene.mediaUrl || artifact.mediaUrl || 'assets/demo/luosifen-sample.mp4')}"></video></div>
+      <section class="video-editor-controls"><h2>画面${index + 1}</h2><div class="video-editor-scene-tabs"><label class="video-variant-add">${Icon('material')}<span>新增视频</span><input type="file" accept="video/*" data-upload="scene-video" aria-label="为当前画面新增视频"></label>${variants.map((variant, variantIndex) => `<button class="${(scene.variantIndex || 0) === variantIndex ? 'is-active' : ''}" data-action="select-scene-variant" data-index="${variantIndex}" aria-label="选择视频${variantIndex + 1}">${variant.generated ? '<em>AI</em>' : ''}${variant.image ? `<img src="${escapeHtml(variant.image)}" alt="">` : `<video muted preload="metadata" src="${escapeHtml(variant.mediaUrl)}"></video>`}</button>`).join('')}</div><div class="video-editor-prompt"><h3>编辑描述</h3><textarea data-artifact-field="scenes.${index}.text" aria-label="画面描述">${escapeHtml(scene.text)}</textarea><footer><div class="video-reference-list">${references.map((reference) => `<img src="${escapeHtml(reference.image)}" alt="${escapeHtml(reference.title || '参考主体')}" title="${escapeHtml(reference.title || '参考主体')}">`).join('')}<label class="video-reference-add" title="添加参考主体">${Icon('material')}<input type="file" accept="image/*" data-upload="scene-reference" aria-label="添加参考主体"></label></div><div class="video-prompt-send"><span>输入@可引用参考主体</span><button data-action="regenerate-scene" aria-label="生成当前画面">${Icon('send')}</button></div></footer></div></section>
     </div>
-    <div class="video-editor-timeline"><span>画面 ${index + 1} / ${frames.length}</span><div class="video-editor-tools"><button data-action="package-video" aria-pressed="${Boolean(artifact.packaging)}">${artifact.packaging ? '已启用智能包装' : '智能包装'}</button></div></div>
+    <div class="video-editor-timeline"><button data-action="editor-video-play" aria-label="播放" aria-pressed="false">${Icon('videoPlay')}</button><button data-action="editor-video-mute" aria-label="静音" aria-pressed="false">${Icon('videoMute')}</button><time data-editor-time>00:00 / 00:00</time><div class="video-editor-tools">${[['videoActor', '形象'], ['videoSticker', '贴纸'], ['videoText', '文字'], ['videoMusic', '音乐'], ['videoPackage', '智能包装']].map(([icon, label]) => `<button data-action="video-tool-boundary" data-tool="${label}" title="${label}" aria-label="${label}">${Icon(icon)}${label === '智能包装' ? '<span>智能包装</span>' : ''}</button>`).join('')}</div></div>
     <div class="video-editor-frames">${frames.map((src, frameIndex) => `<button data-action="select-scene" data-index="${frameIndex}" class="${frameIndex === index ? 'is-active' : ''}"><img src="${escapeHtml(src)}" alt="画面${frameIndex + 1}"></button>`).join('')}</div>
   </div>`;
 }
@@ -173,7 +177,7 @@ function DrillEditor(artifact, editingField) {
 }
 
 function LoadingDetail() {
-  return '<div class="artifact-loading"><span></span><p>正在加载产物内容</p></div>';
+  return '<div class="artifact-loading" role="status" aria-label="正在加载产物内容" data-source-node="1343:168488"><div class="artifact-loading-title"></div><div class="artifact-loading-surface"></div></div>';
 }
 
 function ArtifactContent(state, workspace) {

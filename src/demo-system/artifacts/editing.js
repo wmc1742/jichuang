@@ -1,6 +1,6 @@
-import { artifactById, ArtifactView } from './model.js?v=20260906d';
-import { artifactContent } from './content.js?v=20260906d';
-import { commitArtifactEdit } from '../tasks/model.js?v=20260906d';
+import { artifactById, ArtifactView } from './model.js?v=20260906e';
+import { artifactContent } from './content.js?v=20260906e';
+import { commitArtifactEdit } from '../tasks/model.js?v=20260906e';
 
 export function beginActorDrill(state, actorId) {
   const workspace = state.artifactWorkspace;

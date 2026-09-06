@@ -1,6 +1,14 @@
 export const assetRoot = './assets';
 
 export const icons = {
+  videoPlay: `${assetRoot}/agent-2/icons/video-play.svg`,
+  videoMute: `${assetRoot}/agent-2/icons/video-mute.svg`,
+  videoActor: `${assetRoot}/agent-2/icons/video-actor.svg`,
+  videoSticker: `${assetRoot}/agent-2/icons/video-sticker.svg`,
+  videoText: `${assetRoot}/agent-2/icons/video-text.svg`,
+  videoMusic: `${assetRoot}/agent-2/icons/video-music.svg`,
+  videoPackage: `${assetRoot}/agent-2/icons/video-package.svg`,
+  skillSearch: `${assetRoot}/agent-2/icons/skill-search.svg`,
   close: `${assetRoot}/agent-2/icons/composer-close.svg`,
   logoMark: `${assetRoot}/agent-2/icons/logo-mark.svg`,
   logoWord: `${assetRoot}/agent-2/icons/logo-word.svg`,
@@ -24,7 +32,7 @@ export const icons = {
   actor: `${assetRoot}/agent-2/icons/artifact-actor.svg`,
   play: `${assetRoot}/agent-2/icons/play.svg`,
   selectionForm: `${assetRoot}/agent-2/icons/selection-form.svg`,
-  questionConfirm: `${assetRoot}/agent-2/icons/question-confirm.svg?v=20260906d`,
+  questionConfirm: `${assetRoot}/agent-2/icons/question-confirm.svg?v=20260906e`,
   checkboxSelected: `${assetRoot}/agent-2/icons/checkbox-selected.svg`,
   thinkingProgress: `${assetRoot}/agent-2/icons/thinking-progress.png`,
   thinkingComplete: `${assetRoot}/agent-2/icons/thinking-complete.svg`,
@@ -36,6 +44,7 @@ export const icons = {
 };
 
 export const media = {
+  skillPreview: `${assetRoot}/agent-2/skill-preview.png`,
   product: `${assetRoot}/figma-latest/media/videoSingle-img1011.png`,
   productSquare: `${assetRoot}/figma-latest/media/analysisReport-imgImage.png`,
   actor: `${assetRoot}/figma-latest/media/creativeDetail-imgRectangle279335595.png`,
