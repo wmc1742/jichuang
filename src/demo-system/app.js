@@ -247,6 +247,8 @@ if (window.location.hash.startsWith('#task=')) {
 }
 
 const app = document.querySelector('#app');
+state.artifactWorkspace.loadingArtifactId = null;
+state.artifactWorkspace.playing = false;
 if (state.editor.enabled) state.editor.sourceMessages = structuredClone(state.messages);
 let studioInputTimer;
 let activeRunTimer = null;
@@ -295,6 +297,7 @@ function setViewMode(view) {
 
 function render({ keepScroll = true, scrollToEnd = false } = {}) {
   state.compactMobile = window.innerWidth <= 760;
+  state.compactTaskRail = state.compactMobile || (window.innerWidth < 1200 && (state.artifactWorkspace.open || state.editor.enabled));
   persistCurrentTask();
   const previous = document.querySelector('[data-role="conversation-scroll"]');
   const scrollTop = previous?.scrollTop || 0;
@@ -975,7 +978,7 @@ app.addEventListener('click', async (event) => {
     state.projectMenuOpen = false;
     state.dialog = 'delete';
   } else if (action === 'toggle-sidebar') {
-    if (state.compactMobile) state.mobileTasksOpen = !state.mobileTasksOpen;
+    if (state.compactTaskRail) state.mobileTasksOpen = !state.mobileTasksOpen;
     else state.sidebarCollapsed = !state.sidebarCollapsed;
   } else if (action === 'select-product') {
     state.selectedProduct = null;

@@ -67,6 +67,11 @@ video.artifact-video-stage { display: block; width: min(100%, 420px); height: au
 .video-editor-player > img { object-fit: contain; }
 .artifact-detail-title h1 { overflow-wrap: anywhere; }
 .settings-row--ratio label { display: flex; gap: 8px; align-items: center; }
+@media (max-width: 1199px) {
+  .agent-shell .task-sidebar.mobile-tasks-open { position: fixed; z-index: 80; inset: 0 auto 0 0; width: 220px; background: #242128; box-shadow: 20px 0 80px #0009; }
+  .agent-shell .task-sidebar.mobile-tasks-open .recent-tasks, .agent-shell .task-sidebar.mobile-tasks-open .new-task span:last-child { display: flex; }
+  .agent-shell .task-sidebar.mobile-tasks-open .recent-task { display: block; }
+}
 @media (max-width: 760px) {
   .agent-shell, .agent-shell.has-workbench, .agent-shell.is-editing { --agent-sidebar: 52px; grid-template-columns: 52px minmax(0, 1fr); }
   .task-sidebar { padding: 16px 6px; }
