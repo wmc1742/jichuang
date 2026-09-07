@@ -1,4 +1,4 @@
-export const documentBlockTypes = Object.freeze(['section', 'paragraph', 'list', 'subjects', 'shots', 'image', 'video']);
+export const documentBlockTypes = Object.freeze(['section', 'paragraph', 'list', 'subjects', 'shots', 'image', 'video', 'reference-gallery', 'fact-cards']);
 
 export function validateDocument(document) {
   const errors = [];
@@ -49,4 +49,20 @@ export function migrateDocument(content) {
   // Preserve text already edited in an earlier demo; never replace it with new fixtures.
   return { version: 1, blocks: Object.entries(content || {}).filter(([, value]) => typeof value === 'string')
     .map(([id, text]) => ({ id: `legacy-${id}`, type: 'paragraph', text })) };
+}
+
+export function appendDocumentReference(artifact, blockId, reference) {
+  const draft = structuredClone(artifact);
+  function find(blocks) {
+    for (const block of blocks || []) {
+      if (block.id === blockId && block.type === 'reference-gallery') return block;
+      const nested = find(block.children);
+      if (nested) return nested;
+    }
+    return null;
+  }
+  const gallery = find(draft.content?.blocks);
+  if (!gallery || !reference.url) return null;
+  gallery.items.push(structuredClone(reference));
+  return draft;
 }

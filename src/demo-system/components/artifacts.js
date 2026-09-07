@@ -1,6 +1,6 @@
-import { media } from '../data/assets.js?v=20260906e';
-import { StructuredDocument } from './document-blocks.js?v=20260906e';
-import { artifactContent } from '../artifacts/content.js?v=20260906e';
+import { media } from '../data/assets.js?v=20260907f';
+import { StructuredDocument } from './document-blocks.js?v=20260907f';
+import { artifactContent } from '../artifacts/content.js?v=20260907f';
 import {
   ArtifactType,
   ArtifactView,
@@ -9,8 +9,8 @@ import {
   createArtifactWorkspace,
   generatedArtifactTypes,
   getArtifactType,
-} from '../artifacts/model.js?v=20260906e';
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906e';
+} from '../artifacts/model.js?v=20260907f';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260907f';
 
 function workspaceState(state) {
   if (state.artifactWorkspace) return state.artifactWorkspace;
@@ -28,19 +28,20 @@ function ArtifactTabs(state, workspace) {
   const artifacts = state.artifacts || [];
   const rootActive = !workspace.activeTabId || [ArtifactView.CATEGORY, ArtifactView.LIST].includes(workspace.activeView);
   return `
-    <nav class="artifact-tabs ${workspace.openTabs.length > 3 ? 'is-crowded' : ''}" aria-label="已打开的产物">
-      <button class="artifact-root-tab ${rootActive ? 'is-active' : ''} ${workspace.openTabs.length ? 'is-compact' : ''}" data-action="artifact-root" title="生成内容">
+    <nav class="artifact-tabs ${workspace.openTabs.length ? 'has-files' : ''}" aria-label="已打开的产物">
+      <button class="artifact-root-tab ${rootActive ? 'is-active' : ''} ${workspace.openTabs.length ? 'is-compact' : ''}" data-action="artifact-root" title="生成内容" ${rootActive ? 'aria-current="page"' : ''} data-source-node="1343:168417">
         ${Icon('artifactFolder')}<span>生成内容</span>
       </button>
-      ${workspace.openTabs.map((id) => {
+      ${workspace.openTabs.length ? '<span class="artifact-tab-divider" aria-hidden="true"></span>' : ''}
+      ${workspace.openTabs.length ? '<div class="artifact-open-tabs">' : ''}${workspace.openTabs.map((id) => {
         const artifact = artifactById(artifacts, id);
         if (!artifact) return '';
         const definition = getArtifactType(artifact.type);
         const active = workspace.activeTabId === id && !rootActive;
         return `<button class="artifact-file-tab ${active ? 'is-active' : ''}" data-action="activate-artifact-tab" data-artifact="${escapeHtml(id)}" title="${escapeHtml(artifact.title)}">
-          ${Icon(definition.icon)}<span>${escapeHtml(artifact.title)}</span>${active ? '<i data-action="close-artifact-tab" aria-label="关闭产物">×</i>' : ''}
+          ${Icon(definition.icon)}<span>${escapeHtml(artifact.title)}</span>${active ? `<i data-action="close-artifact-tab" aria-label="关闭产物" title="关闭产物">${Icon('artifactTabClose')}</i>` : ''}
         </button>`;
-      }).join('')}
+      }).join('')}${workspace.openTabs.length ? '</div>' : ''}
     </nav>`;
 }
 
@@ -49,6 +50,7 @@ function ArtifactHeader(state, workspace) {
     <header class="workbench-header">
       ${ArtifactTabs(state, workspace)}
       <div class="workbench-actions">
+        <button class="aic-icon-button" data-action="toggle-workbench-size" aria-label="${workspace.maximized ? '还原产物窗口' : '最大化产物窗口'}" title="${workspace.maximized ? '还原产物窗口' : '最大化产物窗口'}" aria-pressed="${Boolean(workspace.maximized)}" data-source-node="1343:166900">${Icon('workspaceResize')}</button>
         ${IconButton({ icon: 'workbench', label: '收起产物窗口', action: 'close-workbench' })}
       </div>
     </header>`;
@@ -94,16 +96,15 @@ function TypeCollection(state, type) {
 }
 
 function ArtifactOverview(state, workspace) {
-  if (!state.artifacts.length) return '<div class="artifact-empty">生成的内容将在这里展示</div>';
+  if (!state.artifacts.length) return '<div class="artifact-empty artifact-empty--workspace" data-source-node="1047:46451">暂时没有生成新的内容</div>';
   const listMode = workspace.rootMode === ArtifactView.LIST;
-  return `<section class="artifact-overview">
-    <div class="artifact-overview__toolbar">
-      ${listMode ? '<span class="artifact-overview__label">生成内容</span>' : TypeFilters(state, workspace)}
-      <button class="artifact-view-toggle" data-action="toggle-artifact-list-mode">${Icon('artifactList')}<span>${listMode ? '分类模式' : '列表模式'}</span></button>
-    </div>
+  const types = generatedArtifactTypes(state.artifacts);
+  const selectedCategory = types.some((type) => type.id === workspace.selectedCategory) ? workspace.selectedCategory : types[0].id;
+  const switchMode = `<button class="artifact-view-toggle" data-action="toggle-artifact-list-mode" aria-label="切换为${listMode ? '分类' : '列表'}模式" data-source-node="1343:168665">${Icon('artifactViewSwitch')}<span>${listMode ? '列表模式' : '分类模式'}</span></button>`;
+  return `<section class="artifact-overview" data-source-node="${listMode ? '1347:223013' : '1250:143109'}">
     ${listMode
-      ? `<div class="artifact-groups">${generatedArtifactTypes(state.artifacts).map((type) => `<section><h2>${type.label}</h2>${TypeCollection(state, type.id)}</section>`).join('')}</div>`
-      : TypeCollection(state, workspace.selectedCategory)}
+      ? `<div class="artifact-groups">${types.map((type, index) => `<section><div class="artifact-overview__toolbar"><h2>${Icon(type.icon)}<span>${type.label}</span></h2>${index === 0 ? switchMode : ''}</div>${TypeCollection(state, type.id)}</section>`).join('')}</div>`
+      : `<div class="artifact-overview__toolbar">${TypeFilters(state, { ...workspace, selectedCategory })}${switchMode}</div>${TypeCollection(state, selectedCategory)}`}
   </section>`;
 }
 

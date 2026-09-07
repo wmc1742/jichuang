@@ -35,7 +35,7 @@ ConversationNode
 - Detail: one artifact is selected in an artifact tab.
 - Edit: the selected type's registered editor is active.
 - Drill: edits a nested entity such as an actor referenced by a document.
-- The live workspace has no maximize control (user correction, 2026-09-06); historical saved maximize flags do not hide the conversation.
+- Maximize/minimize is part of the Figma workspace design. The user asked to remove an incorrectly reused historical file-tree icon, not the maximize feature. Restored from `1343:166900` and `1250:145002`: keep the task rail, hide the conversation while maximized, and restore the split view without changing the selected artifact, draft or conversation scroll position.
 - Loading and tab-overflow are supported boundary states.
 
 ## Interaction rules
@@ -51,6 +51,16 @@ ConversationNode
 9. Actor references in document subjects and shot rows enter Drill in the original document tab, both from Detail and Edit. They never add an actor tab. Directly opening an actor from the artifact collection remains a separate artifact action.
 10. Drill keeps the caller view and any parent document draft. Back/Cancel discard only child changes. Apply commits only the referenced actor revision and restores the caller view/draft; it must not commit unsaved parent document text.
 11. Actor Drill follows `1184:124561`: Back/Cancel/Apply, portrait, appearance selection, appearance description, voice choice and voice description. Description sections own their local Edit actions. No generic top-level actor Edit button.
+12. Each artifact tab keeps its editor view, unfinished draft, scene selection and drill context. Switching tabs, returning to the collection, collapsing the workspace or closing a tab must not delete unfinished edits. Reopening restores them; Apply/Cancel remain the explicit edit decisions.
+13. Overview mode text describes the current mode, matching `1250:143109` and `1347:223013`. The list view puts the mode switch beside its first typed heading, without an additional "generated content" heading row. Only generated types are displayed.
+
+## September 7 workspace verification
+
+- Empty state `1047:46404`: unfilled root title and exact empty copy; no fabricated empty filters.
+- Maximize/restore, five-tab resizing, active-tab visibility on mobile, task reload and draft restoration checked in an isolated browser.
+- Category/list layouts checked against their respective source frames. Mode switch, resize and tab close SVGs were exported from exact Figma nodes.
+- Conversation 1.0 timing and streaming were not changed.
+- Pending clarification: whether quoting an artifact while maximized automatically restores the split view. The question has been sent to the user; no new behavior has been implemented for that branch.
 
 ## September 6 correction verification
 
@@ -60,6 +70,13 @@ ConversationNode
 - Regression tests: `tests/artifact-drill.test.mjs` covers tab identity, parent draft preservation, child-only apply, cancel, document references and control structure.
 
 ## API mapping
+
+### Requirements document, September 7
+
+- Source `1466:16935`, body `1466:17458`. Placeholder wet-wipe text is replaced with user-authorized luosifen Mock recommendations; layout and content data remain separate.
+- The shared document renderer supports `reference-gallery` (image list with Add) and `fact-cards` (titled cards, tagged/bulleted rows), independent of artifact name or ID. Existing paragraph/section/subject/shot rendering remains available.
+- Reference uploads belong to the document. In Detail they commit a revision; in Edit they remain in the draft until Apply. Cancel discards draft-only additions. Local media uses the existing IndexedDB store.
+- Only an exact, untouched historical fixture with no edit timestamp/history is refreshed. Modified content, revision history and active drafts are never replaced by fixtures.
 
 | UI event | Suggested API event |
 | --- | --- |

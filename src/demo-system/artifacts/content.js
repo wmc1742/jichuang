@@ -1,15 +1,20 @@
-import { media } from '../data/assets.js?v=20260906e';
-import { createDocumentFixture } from '../scenarios/documents.js?v=20260906e';
-import { migrateDocument } from './document.js?v=20260906e';
+import { media } from '../data/assets.js?v=20260907f';
+import { createDocumentFixture, legacyRequirementsFixture } from '../scenarios/documents.js?v=20260907f';
+import { requirementReferences } from '../scenarios/requirements.js?v=20260907f';
+import { migrateDocument } from './document.js?v=20260907f';
 
 export function artifactContent(artifact, state = {}) {
   const product = state.product?.title || '即创螺蛳粉';
   const selected = state.messages?.find((message) => message.id === 'campaign-selection')?.answer?.selected || [];
   const campaigns = (selected.includes('以上全部') ? ['双11节点', '圣诞/元旦跨年', '春节/年货节'] : selected).join('、') || '本次大促';
+  const context = { product, campaigns, duration: state.settings?.duration || 20, ratio: state.settings?.ratio || '9:16',
+    referenceImages: state.product?.referenceImages || (!state.product?.thumbnail || state.product.thumbnail === media.product ? requirementReferences : [{ id: 'product-reference', url: state.product.thumbnail, title: product }]) };
+  const untouchedLegacy = artifact !== state.artifactDraft && artifact.documentTemplate === 'requirements' && !artifact.updatedAt && !artifact.history?.length
+    && JSON.stringify(artifact.content) === JSON.stringify(legacyRequirementsFixture(context));
   if (artifact.type === 'document') return {
     ...artifact,
-    content: artifact.content ? migrateDocument(artifact.content)
-      : artifact.documentTemplate ? createDocumentFixture(artifact.documentTemplate, { product, campaigns, duration: state.settings?.duration || 20, ratio: state.settings?.ratio || '9:16' })
+    content: artifact.content && !untouchedLegacy ? migrateDocument(artifact.content)
+      : artifact.documentTemplate ? createDocumentFixture(artifact.documentTemplate, context)
         : { version: 1, blocks: [] },
   };
   if (artifact.type === 'actor') return {

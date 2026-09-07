@@ -8,40 +8,40 @@ import {
   scenarioArtifacts,
   scenarioMessages,
   scenarioRuns,
-} from './scenarios/luosifen.js?v=20260906e';
-import { media } from './data/assets.js?v=20260906e';
-import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260906e';
-import { TaskDialogs } from './components/task-dialogs.js?v=20260906e';
-import { ConversationSettingsModal } from './components/navigation.js?v=20260906e';
-import { escapeHtml } from './ui/primitives.js?v=20260906e';
-import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260906e';
-import { artifactContent } from './artifacts/content.js?v=20260906e';
-import { beginActorDrill, finishActorDrill, ensureActorDraft } from './artifacts/editing.js?v=20260906e';
-import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260906e';
-import { readStructuredEntry } from './components/composer.js?v=20260906e';
-import { Message } from './components/messages.js?v=20260906e';
-import { skillById, availableSkills } from './scenarios/skills.js?v=20260906e';
-import { replaceDocumentReference } from './artifacts/document.js?v=20260906e';
-import { phasesAfterRun } from './scenarios/decisions.js?v=20260906e';
-import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260906e';
-import { HomeTemplate } from './templates/home.js?v=20260906e';
-import { StudioTemplate } from './templates/studio.js?v=20260906e';
-import { WorkspaceTemplate } from './templates/workspace.js?v=20260906e';
-import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260906e';
-import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260906e';
-import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260906e';
+} from './scenarios/luosifen.js?v=20260907f';
+import { media } from './data/assets.js?v=20260907f';
+import { createTask, snapshotTask, upsertTask, readTasks, saveTasks, isTask, commitArtifactEdit } from './tasks/model.js?v=20260907f';
+import { TaskDialogs } from './components/task-dialogs.js?v=20260907f';
+import { ConversationSettingsModal } from './components/navigation.js?v=20260907f';
+import { escapeHtml } from './ui/primitives.js?v=20260907f';
+import { nextConversationAction, personalizeText, publishArtifacts } from './conversation/workflow.js?v=20260907f';
+import { artifactContent } from './artifacts/content.js?v=20260907f';
+import { beginActorDrill, finishActorDrill, ensureActorDraft, activateArtifact, returnToArtifactRoot, closeArtifact } from './artifacts/editing.js?v=20260907f';
+import { createInput, migrateInput, inputText, inputInstruction, inputReferences, inputRequest, validateInput, selectInputSkill, removeInputSkill, attachInputReference, removeInputReference } from './composer/model.js?v=20260907f';
+import { readStructuredEntry } from './components/composer.js?v=20260907f';
+import { Message } from './components/messages.js?v=20260907f';
+import { skillById, availableSkills } from './scenarios/skills.js?v=20260907f';
+import { replaceDocumentReference, appendDocumentReference } from './artifacts/document.js?v=20260907f';
+import { phasesAfterRun } from './scenarios/decisions.js?v=20260907f';
+import { storeMedia, loadMedia, resolveMedia } from './tasks/media-store.js?v=20260907f';
+import { HomeTemplate } from './templates/home.js?v=20260907f';
+import { StudioTemplate } from './templates/studio.js?v=20260907f';
+import { WorkspaceTemplate } from './templates/workspace.js?v=20260907f';
+import { ConversationKind, normalizeConversationNodes } from './conversation/model.js?v=20260907f';
+import { appendConversationNodes, applyConversationEvent, ConversationEvent } from './conversation/runtime.js?v=20260907f';
+import { createExecutionTimeline, executionFrame, formatLiveElapsed, getRunSimulationPlan } from './conversation/simulation.js?v=20260907f';
 import {
   ArtifactView,
   artifactById,
-  closeArtifactTab,
   createArtifactWorkspace,
   getArtifactType,
   openArtifactTab,
-} from './artifacts/model.js?v=20260906e';
+  toggleArtifactWorkspaceSize,
+} from './artifacts/model.js?v=20260907f';
 
 const urlParams = new URLSearchParams(window.location.search);
 const studioMode = urlParams.get('studio') === '1';
-const viewMode = !urlParams.get('view') || urlParams.get('view') === 'home' ? 'new' : urlParams.get('view');
+const viewMode = urlParams.get('view') || 'new';
 const stageMode = urlParams.get('stage');
 const editorMode = urlParams.get('edit') === '1';
 const workspaceView = ['new', 'conversation', 'video-list', 'video-detail'].includes(viewMode);
@@ -190,7 +190,7 @@ const state = {
   messages: workspaceView && !newTaskView && snapshotMode ? applyConversationConfig(completedScenarioMessages, initialConversationConfig) : [],
   artifacts: snapshotMode || ['video-list', 'video-detail'].includes(viewMode) ? structuredClone(scenarioArtifacts) : [],
   scenarioStage: workspaceView && !newTaskView && snapshotMode ? 8 : 1,
-  taskMode: newTaskView || interactiveConversationEntry ? 'new' : workspaceView ? 'existing' : null,
+  taskMode: newTaskView || interactiveConversationEntry || viewMode === 'home' ? 'new' : workspaceView ? 'existing' : null,
   projectTitle: newTaskView || interactiveConversationEntry ? '新的项目' : '即创螺蛳粉',
   busy: false,
   projectMenuOpen: false,
@@ -205,7 +205,7 @@ const state = {
   artifactTreeOpen: false,
   artifactWorkspace: createArtifactWorkspace({
     open: !editorMode && ['video-list', 'video-detail'].includes(viewMode),
-    selectedCategory: 'video',
+    selectedCategory: ['video-list', 'video-detail'].includes(viewMode) ? 'video' : 'document',
     rootMode: ArtifactView.CATEGORY,
     activeView: viewMode === 'video-detail' ? ArtifactView.DETAIL : ArtifactView.CATEGORY,
     activeTabId: viewMode === 'video-detail' ? 'campaign-video-1' : null,
@@ -232,7 +232,7 @@ const state = {
 const savedTasks = readTasks(window.localStorage);
 state.tasks = savedTasks.tasks;
 if (!state.tasks.length) state.tasks.push(createTask({ taskId: 'sample-luosifen', projectTitle: '即创螺蛳粉', taskMode: 'existing', messages: applyConversationConfig(completedScenarioMessages), artifacts: structuredClone(scenarioArtifacts), scenarioStage: 8, product: project.product }));
-const restoredTask = !snapshotMode && viewMode !== 'new' && state.tasks.find((task) => task.taskId === (urlParams.get('task') || savedTasks.activeId));
+const restoredTask = !snapshotMode && viewMode !== 'new' && state.tasks.find((task) => task.taskId === (urlParams.get('task') || savedTasks.activeId) && (viewMode !== 'home' || task.taskMode === 'new'));
 if (restoredTask) Object.assign(state, structuredClone(restoredTask));
 if (['video-list', 'video-detail'].includes(viewMode)) {
   state.taskMode = 'existing';
@@ -305,14 +305,21 @@ function setViewMode(view) {
 }
 
 const artifactScrollPositions = new Map();
-const artifactScrollSelectors = ['.workbench-body', '.artifact-detail-scroll', '.actor-variants', '.actor-description--description p', '.actor-description--voice p'];
+const conversationScrollPositions = new Map();
+const artifactScrollSelectors = ['.artifact-open-tabs', '.workbench-body', '.artifact-detail-scroll', '.actor-variants', '.actor-description--description p', '.actor-description--voice p'];
+
+function taskForAction(id = state.taskId) {
+  return id === state.taskId ? snapshotTask(state) : state.tasks.find((task) => task.taskId === id);
+}
 
 function render({ keepScroll = true, scrollToEnd = false } = {}) {
   state.compactMobile = window.innerWidth <= 760;
   state.compactTaskRail = state.compactMobile || (window.innerWidth < 1200 && (state.artifactWorkspace.open || state.editor.enabled));
   persistCurrentTask();
   const previous = document.querySelector('[data-role="conversation-scroll"]');
-  const scrollTop = previous?.scrollTop || 0;
+  const previousTaskId = previous?.dataset.taskId;
+  if (previous?.getClientRects().length) conversationScrollPositions.set(previousTaskId, previous.scrollTop);
+  const scrollTop = conversationScrollPositions.get(state.taskId) || 0;
   const previousWorkbench = document.querySelector('[data-workspace-view]');
   if (previousWorkbench) artifactScrollPositions.set(previousWorkbench.dataset.workspaceView, artifactScrollSelectors.map((selector) => {
     const element = previousWorkbench.querySelector(selector);
@@ -322,8 +329,8 @@ function render({ keepScroll = true, scrollToEnd = false } = {}) {
     ? { ...state, messages: state.messages.map((message) => ({ ...message, editorSelected: message.id === state.editor.selectedId })) }
     : state;
   app.innerHTML = resolveMedia((state.page === 'studio' ? StudioTemplate(renderState) : state.page === 'home' ? HomeTemplate(renderState) : WorkspaceTemplate(renderState))
-    + (state.settingsOpen ? ConversationSettingsModal(state.settings) : '') + TaskDialogs(state)
-    + (state.pendingRun && !state.busy ? '<div class="resume-run"><button data-action="resume-run">继续未完成的生成</button></div>' : '')
+    + (state.settingsOpen ? ConversationSettingsModal(taskForAction(state.actionTaskId)?.settings || state.settings) : '') + TaskDialogs({ ...state, actionTask: taskForAction(state.actionTaskId) })
+    + (state.page === 'workspace' && state.pendingRun && !state.busy ? '<div class="resume-run"><button data-action="resume-run">继续未完成的生成</button></div>' : '')
     + (state.readOnly ? '<div class="shared-task-banner">任务快照 · 只读<button data-action="new-task">开始新任务</button></div>' : '')
     + (state.notice ? `<div class="demo-notice" role="status">${escapeHtml(state.notice)}</div>` : ''));
   const next = document.querySelector('[data-role="conversation-scroll"]');
@@ -332,6 +339,14 @@ function render({ keepScroll = true, scrollToEnd = false } = {}) {
   for (const [selector, top, left] of artifactScrollPositions.get(workbench?.dataset.workspaceView) || []) {
     const element = workbench?.querySelector(selector);
     if (element) { element.scrollTop = top; element.scrollLeft = left; }
+  }
+  const tabTrack = workbench?.querySelector('.artifact-open-tabs');
+  const activeTab = tabTrack?.querySelector('.artifact-file-tab.is-active');
+  if (activeTab) {
+    const trackRect = tabTrack.getBoundingClientRect();
+    const tabRect = activeTab.getBoundingClientRect();
+    if (tabRect.right > trackRect.right) tabTrack.scrollLeft += tabRect.right - trackRect.right;
+    else if (tabRect.left < trackRect.left) tabTrack.scrollLeft -= trackRect.left - tabRect.left;
   }
   document.querySelectorAll('.question-form').forEach((form) => {
     const saved = state.questionDrafts?.[form.dataset.messageId];
@@ -418,6 +433,15 @@ function openExistingTask(taskId) {
     busy: false,
     dialog: null, readOnly: false, mobileTasksOpen: false,
   });
+  render({ keepScroll: false });
+}
+
+function openHome() {
+  pauseCurrentTask();
+  if (state.taskMode !== 'new') Object.assign(state, createTask());
+  Object.assign(state.editor, { enabled: false, selectedId: null, sourceMessages: null });
+  Object.assign(state, { page: 'home', dialog: null, settingsOpen: false, taskMenu: null, projectMenuOpen: false, readOnly: false, mobileTasksOpen: false });
+  setViewMode('home');
   render({ keepScroll: false });
 }
 
@@ -712,10 +736,8 @@ function openWorkbench(type = 'video', detail = false) {
 function showArtifact(artifactId) {
   const artifact = artifactById(state.artifacts, artifactId);
   if (!artifact) return;
-  state.artifactDraft = artifact.type === 'preview' ? structuredClone(artifactContent(artifact, state)) : null;
-  state.activeScene = 0;
+  Object.assign(state, activateArtifact(state, artifactId));
   const taskId = state.taskId;
-  state.artifactWorkspace = openArtifactTab(state.artifactWorkspace, artifact.id);
   state.artifactWorkspace.loadingArtifactId = artifact.id;
   window.setTimeout(() => {
     if (state.taskId !== taskId || state.artifactWorkspace.loadingArtifactId !== artifact.id) return;
@@ -883,6 +905,24 @@ app.addEventListener('change', async (event) => {
     if (file.size > 50 * 1024 * 1024 || !/^(image|video)\//.test(file.type)) { notify('请选择 50MB 以内的图片或视频'); render(); return; }
     const taskId = state.taskId;
     const uploadKind = event.target.dataset.upload;
+    if (uploadKind === 'document-reference') {
+      if (!file.type.startsWith('image/')) { notify('请选择图片作为商品参考图'); render(); return; }
+      const artifactId = event.target.dataset.artifact;
+      const blockId = event.target.dataset.blockId;
+      const original = artifactById(state.artifacts, artifactId);
+      const draft = state.artifactDraft?.id === artifactId ? state.artifactDraft : null;
+      if (!original || state.artifactWorkspace.activeTabId !== artifactId) return;
+      try {
+        const url = await storeMedia(file);
+        if (taskId !== state.taskId || state.artifactWorkspace.activeTabId !== artifactId || draft !== (state.artifactDraft?.id === artifactId ? state.artifactDraft : null)) return;
+        const current = artifactById(state.artifacts, artifactId);
+        const updated = appendDocumentReference(draft || artifactContent(current, state), blockId, { id: `reference-${Date.now()}`, url, title: file.name });
+        if (!updated) return;
+        if (draft) state.artifactDraft = updated;
+        else state.artifacts = state.artifacts.map(item => item.id === artifactId ? commitArtifactEdit(current, updated) : item);
+      } catch { notify('参考图保存失败，请检查浏览器存储权限后重试'); }
+      render(); return;
+    }
     const sceneDraft = ['scene-video', 'scene-reference'].includes(uploadKind) ? state.artifactDraft : null;
     const sceneIndex = state.activeScene || 0;
     if (['scene-video', 'scene-reference'].includes(uploadKind) && (!sceneDraft?.scenes?.[sceneIndex] || !file.type.startsWith(uploadKind === 'scene-video' ? 'video/' : 'image/'))) return;
@@ -958,9 +998,10 @@ app.addEventListener('click', async (event) => {
   }
 
   const target = event.target.closest('[data-action]');
-  if (!target) return;
+  if (!target) { if (state.taskMenu) { state.taskMenu = null; render(); } return; }
   syncDraft();
   const action = target.dataset.action;
+  if (action !== 'toggle-task-menu') state.taskMenu = null;
   if (action === 'editor-video-play' || action === 'editor-video-mute') {
     const video = app.querySelector('[data-editor-video]');
     if (!video) return;
@@ -998,15 +1039,23 @@ app.addEventListener('click', async (event) => {
     if (!name) return;
     state.projectTitle = name; state.dialog = null;
   } else if (action === 'confirm-delete-task') {
-    cancelActiveRun();
-    state.tasks = state.tasks.filter((task) => task.taskId !== state.taskId);
-    Object.assign(state, createTask(), { dialog: null, busy: false });
-    setViewMode('new');
+    const id = state.actionTaskId || state.taskId;
+    state.tasks = state.tasks.filter((task) => task.taskId !== id);
+    if (id === state.taskId) {
+      cancelActiveRun();
+      Object.assign(state, createTask(), { busy: false });
+      setViewMode('new');
+    }
+    state.dialog = null;
+    state.actionTaskId = null;
   } else if (action === 'save-settings') {
     const modal = document.querySelector('.conversation-settings');
     const duration = Number(modal.querySelector('input[type="number"]').value);
-    state.settings = { duration: Math.max(5, Math.min(60, duration || 20)), ratio: modal.querySelector('[name="ratio"]:checked').value, watermark: modal.querySelector('[name="watermark"]').checked };
+    const settings = { duration: Math.max(5, Math.min(60, duration || 20)), ratio: modal.querySelector('[name="ratio"]:checked').value, watermark: modal.querySelector('[name="watermark"]').checked };
+    if (!state.actionTaskId || state.actionTaskId === state.taskId) state.settings = settings;
+    else state.tasks = state.tasks.map((task) => task.taskId === state.actionTaskId ? { ...task, settings } : task);
     state.settingsOpen = false;
+    state.actionTaskId = null;
   } else if (action === 'copy-share') {
     try { await navigator.clipboard.writeText(state.shareUrl); notify('分享链接已复制'); }
     catch { document.querySelector('[aria-label="任务分享链接"]')?.select(); notify('请选择并复制分享链接'); }
@@ -1145,7 +1194,7 @@ app.addEventListener('click', async (event) => {
   } else if (state.page === 'studio') {
     return;
   } else if (action === 'home') {
-    openNewTask(); return;
+    openHome(); return;
   } else if (action === 'new-task') {
     openNewTask();
     return;
@@ -1154,9 +1203,14 @@ app.addEventListener('click', async (event) => {
     return;
   } else if (action === 'toggle-project-menu') {
     state.projectMenuOpen = !state.projectMenuOpen;
+  } else if (action === 'toggle-task-menu') {
+    const row = target.closest('.recent-task-row').getBoundingClientRect();
+    const sidebar = target.closest('.task-sidebar').getBoundingClientRect();
+    state.taskMenu = state.taskMenu?.taskId === target.dataset.task ? null : { taskId: target.dataset.task, top: Math.min(row.top, innerHeight - 128), left: sidebar.right - 4 };
   } else if (action === 'share-task') {
     state.projectMenuOpen = false;
-    const task = snapshotTask(state);
+    const task = taskForAction(target.dataset.task);
+    if (!task) return;
     const raw = JSON.stringify(task);
     if (raw.includes('local-media:')) { notify('任务含本地上传素材，暂不能生成跨设备分享链接'); render(); return; }
     try {
@@ -1167,11 +1221,13 @@ app.addEventListener('click', async (event) => {
     } catch { notify('当前浏览器无法生成分享链接'); }
   } else if (action === 'open-conversation-settings' || action === 'open-settings') {
     state.projectMenuOpen = false;
+    state.actionTaskId = target.dataset.task || state.taskId;
     state.settingsOpen = true;
   } else if (action === 'close-conversation-settings') {
     state.settingsOpen = false;
   } else if (action === 'delete-task') {
     state.projectMenuOpen = false;
+    state.actionTaskId = target.dataset.task || state.taskId;
     state.dialog = 'delete';
   } else if (action === 'toggle-sidebar') {
     if (innerWidth >= 1200 && document.querySelector('.has-media-editor')) state.mediaTaskRailExpanded = !state.mediaTaskRailExpanded;
@@ -1191,6 +1247,9 @@ app.addEventListener('click', async (event) => {
     references.forEach((reference) => { input = attachInputReference(input, reference); });
     setInput(input);
     state.dialog = null;
+    if (state.page === 'home') { state.page = 'workspace'; setViewMode('new'); }
+  } else if (action === 'home-unavailable') {
+    notify('该入口的目标页面尚未接入此 Demo。');
   } else if (action === 'scroll-skills') {
     const track = target.parentElement.querySelector('.new-task-skill-track');
     track?.scrollBy({ left: target.dataset.direction === 'left' ? -336 : 336, behavior: 'smooth' });
@@ -1283,24 +1342,19 @@ app.addEventListener('click', async (event) => {
   } else if (action === 'close-workbench') {
     state.artifactWorkspace.open = false;
     state.artifactWorkspace.playing = false;
+  } else if (action === 'toggle-workbench-size') {
+    state.artifactWorkspace = toggleArtifactWorkspaceSize(state.artifactWorkspace);
   } else if (action === 'artifact-root') {
-    state.artifactWorkspace.activeTabId = null;
-    state.artifactWorkspace.activeView = state.artifactWorkspace.rootMode;
-    state.artifactWorkspace.drillTarget = null;
+    Object.assign(state, returnToArtifactRoot(state));
   } else if (action === 'toggle-artifact-list-mode') {
     const next = state.artifactWorkspace.rootMode === ArtifactView.LIST ? ArtifactView.CATEGORY : ArtifactView.LIST;
     state.artifactWorkspace.rootMode = next;
     state.artifactWorkspace.activeView = next;
   } else if (action === 'activate-artifact-tab') {
-    state.artifactWorkspace.activeTabId = target.dataset.artifact;
-    state.artifactWorkspace.activeView = ArtifactView.DETAIL;
-    state.artifactWorkspace.drillTarget = null;
-    state.artifactWorkspace.playing = false;
+    Object.assign(state, activateArtifact(state, target.dataset.artifact));
   } else if (action === 'close-artifact-tab') {
     const artifactId = target.closest('[data-artifact]')?.dataset.artifact;
-    state.artifactWorkspace = closeArtifactTab(state.artifactWorkspace, artifactId);
-  } else if (action === 'toggle-artifact-tree') {
-    state.artifactTreeOpen = !state.artifactTreeOpen;
+    Object.assign(state, closeArtifact(state, artifactId));
   } else if (action === 'set-artifact-type') {
     state.artifactWorkspace.selectedCategory = target.dataset.type;
     state.artifactWorkspace.activeTabId = null;
@@ -1375,6 +1429,8 @@ app.addEventListener('click', async (event) => {
 });
 
 document.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && event.target.matches?.('[data-home-search]')) { event.preventDefault(); notify('灵感搜索的数据接口尚未接入。'); render(); return; }
+  if (event.key === 'Escape' && state.taskMenu) { state.taskMenu = null; render(); return; }
   if (event.target.closest?.('.conversation-editor')) return;
   if (event.key === 'Escape' && (state.dialog || state.settingsOpen)) { state.dialog = null; state.settingsOpen = false; render(); return; }
   if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229 && !event.target.closest?.('button') && event.target.closest?.('[data-role="structured-input"], [data-role="composer-input"]')) {

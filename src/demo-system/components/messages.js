@@ -1,6 +1,6 @@
-import { CheckboxOption, CustomOption, FormAction, RadioOption, SelectFieldControl, TextFieldControl } from './form-controls.js?v=20260906e';
-import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260906e';
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906e';
+import { CheckboxOption, CustomOption, FormAction, RadioOption, SelectFieldControl, TextFieldControl } from './form-controls.js?v=20260907f';
+import { resolveConversationPresentation } from '../conversation/component-registry.js?v=20260907f';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260907f';
 
 function editorAttributes(message, presentation) {
   const source = message.editorSource || `scenarioMessages.${message.id}`;

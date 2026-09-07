@@ -1,6 +1,43 @@
-import { artifactById, ArtifactView } from './model.js?v=20260906e';
-import { artifactContent } from './content.js?v=20260906e';
-import { commitArtifactEdit } from '../tasks/model.js?v=20260906e';
+import { artifactById, ArtifactView, openArtifactTab, closeArtifactTab } from './model.js?v=20260907f';
+import { artifactContent } from './content.js?v=20260907f';
+import { commitArtifactEdit } from '../tasks/model.js?v=20260907f';
+
+function rememberTab(state) {
+  const workspace = state.artifactWorkspace;
+  if (!workspace.activeTabId) return workspace;
+  return { ...workspace, tabStates: { ...workspace.tabStates, [workspace.activeTabId]: {
+    view: workspace.activeView, drillTarget: structuredClone(workspace.drillTarget),
+    draft: state.artifactDraft?.id === workspace.activeTabId ? structuredClone(state.artifactDraft) : null,
+    activeScene: state.activeScene || 0, actorEditingField: state.actorEditingField || null,
+  } } };
+}
+
+function restoreTab(state, workspace) {
+  const artifact = artifactById(state.artifacts, workspace.activeTabId);
+  const saved = workspace.tabStates?.[workspace.activeTabId];
+  return {
+    artifactWorkspace: { ...workspace, activeView: saved?.view || workspace.activeView, drillTarget: saved?.drillTarget || null, loadingArtifactId: null },
+    artifactDraft: saved?.draft ? structuredClone(saved.draft) : artifact?.type === 'preview' ? structuredClone(artifactContent(artifact, state)) : null,
+    activeScene: saved?.activeScene || 0, actorEditingField: saved?.actorEditingField || null,
+  };
+}
+
+export function activateArtifact(state, artifactId) {
+  if (!artifactById(state.artifacts, artifactId)) return {};
+  return restoreTab(state, openArtifactTab(rememberTab(state), artifactId));
+}
+
+export function returnToArtifactRoot(state) {
+  const workspace = rememberTab(state);
+  return { artifactWorkspace: { ...workspace, activeTabId: null, activeView: workspace.rootMode, drillTarget: null, loadingArtifactId: null }, artifactDraft: null, actorEditingField: null };
+}
+
+export function closeArtifact(state, artifactId) {
+  const workspace = rememberTab(state);
+  const next = closeArtifactTab(workspace, artifactId);
+  // Closing a view does not discard its unsaved data; reopening restores the draft.
+  return workspace.activeTabId === artifactId ? restoreTab(state, next) : { artifactWorkspace: next };
+}
 
 export function beginActorDrill(state, actorId) {
   const workspace = state.artifactWorkspace;

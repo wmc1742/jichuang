@@ -57,7 +57,8 @@ test('artifact controls follow source structure', () => {
   Object.assign(state, beginActorDrill(state, 'actor'));
   const html = ArtifactWorkbench(state);
   assert.match(html, /artifact-folder\.svg/);
-  assert.doesNotMatch(html, /toggle-workbench-size|data-action="edit-artifact"/);
+  assert.match(html, /toggle-workbench-size/);
+  assert.doesNotMatch(html, /data-action="edit-artifact"/);
   assert.match(html, /aria-label="形象选择"/);
   assert.match(html, /aria-label="编辑形象描述"/);
   assert.match(html, /aria-label="编辑音色描述"/);

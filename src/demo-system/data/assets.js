@@ -1,6 +1,13 @@
 export const assetRoot = './assets';
 
 export const icons = {
+  taskSidebarToggle: `${assetRoot}/agent-2/icons/task-sidebar-toggle.svg`,
+  taskMore: `${assetRoot}/agent-2/icons/task-more.svg`,
+  taskProjects: `${assetRoot}/agent-2/icons/task-projects.svg`,
+  homeReturn: `${assetRoot}/agent-2/home/home-return.svg`,
+  artifactViewSwitch: `${assetRoot}/agent-2/icons/artifact-view-switch.svg`,
+  workspaceResize: `${assetRoot}/agent-2/icons/workspace-resize.svg`,
+  artifactTabClose: `${assetRoot}/agent-2/icons/artifact-tab-close.svg`,
   videoPlay: `${assetRoot}/agent-2/icons/video-play.svg`,
   videoMute: `${assetRoot}/agent-2/icons/video-mute.svg`,
   videoActor: `${assetRoot}/agent-2/icons/video-actor.svg`,
@@ -32,7 +39,7 @@ export const icons = {
   actor: `${assetRoot}/agent-2/icons/artifact-actor.svg`,
   play: `${assetRoot}/agent-2/icons/play.svg`,
   selectionForm: `${assetRoot}/agent-2/icons/selection-form.svg`,
-  questionConfirm: `${assetRoot}/agent-2/icons/question-confirm.svg?v=20260906e`,
+  questionConfirm: `${assetRoot}/agent-2/icons/question-confirm.svg?v=20260907f`,
   checkboxSelected: `${assetRoot}/agent-2/icons/checkbox-selected.svg`,
   thinkingProgress: `${assetRoot}/agent-2/icons/thinking-progress.png`,
   thinkingComplete: `${assetRoot}/agent-2/icons/thinking-complete.svg`,

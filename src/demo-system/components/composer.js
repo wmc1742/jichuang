@@ -1,5 +1,5 @@
-import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260906e';
-import { validateInput } from '../composer/model.js?v=20260906e';
+import { Icon, ProductAttachment, escapeHtml } from '../ui/primitives.js?v=20260907f';
+import { validateInput } from '../composer/model.js?v=20260907f';
 
 function StructuredEntry(input) {
   const skill = input.skill ? `<span class="composer-skill" contenteditable="false" data-component="SkillTag">${escapeHtml(input.skill.name)}<button data-action="clear-skill" aria-label="移除技能">${Icon('close')}</button></span>` : '';
@@ -71,7 +71,7 @@ export function Composer({ home = false, newTask = false, draft = '', attachment
           <div class="composer__tools">
             ${conversation
               ? `<button class="composer-tool" data-action="open-upload" aria-label="添加素材">${Icon('material')}</button>`
-              : `<button class="composer-tool" data-action="select-product" aria-label="上传商品">${Icon('product')}</button><button class="composer-tool" data-action="open-upload" aria-label="添加素材">${Icon('material')}</button><button class="composer-tool" data-action="open-skills" aria-label="选择技能">${Icon('credit')}</button><button class="composer-tool" data-action="open-settings" aria-label="设置">${Icon('settings')}</button>`}
+              : `<button class="composer-tool" data-action="select-product" aria-label="上传商品">${Icon('product')}</button><button class="composer-tool" data-action="open-upload" aria-label="添加素材">${Icon('material')}</button>${home ? '' : `<button class="composer-tool" data-action="open-skills" aria-label="选择技能">${Icon('credit')}</button>`}<button class="composer-tool" data-action="open-settings" aria-label="设置">${Icon('settings')}</button>`}
           </div>
           <div class="composer__submit">
             <span class="credits">${Icon('credit')}<b>0</b></span>

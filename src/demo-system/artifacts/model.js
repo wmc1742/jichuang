@@ -40,8 +40,13 @@ export function createArtifactWorkspace(overrides = {}) {
     drillTarget: null,
     loadingArtifactId: null,
     playing: false,
+    tabStates: {},
     ...overrides,
   };
+}
+
+export function toggleArtifactWorkspaceSize(workspace) {
+  return { ...workspace, maximized: !workspace.maximized };
 }
 
 export function artifactById(artifacts, id) {

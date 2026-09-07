@@ -3,7 +3,7 @@ import {
   ConversationPhase,
   ConversationPlacement,
   normalizeConversationNode,
-} from './model.js?v=20260906e';
+} from './model.js?v=20260907f';
 
 export const conversationComponentRegistry = Object.freeze({
   UserMessage: { kinds: [ConversationKind.USER], placement: ConversationPlacement.FEED },

@@ -4,7 +4,13 @@ const section = (id, title, children, level = 1) => ({ id, type: 'section', titl
 // Scene-specific copy is Mock data; the block grammar and presentation come from Figma.
 export function createDocumentFixture(template, context) {
   const { product, campaigns, duration, ratio } = context;
-  if (template === 'requirements') return { version: 1, source: { mode: 'mock', layoutNode: '1184:124104' }, blocks: [
+  if (template === 'requirements') return createRequirementsDocument(context);
+  return createStoryboardFixture(product, campaigns);
+}
+
+// Kept only to recognize untouched historical fixtures; user edits are never replaced.
+export function legacyRequirementsFixture({ product, campaigns, duration, ratio }) {
+  return { version: 1, source: { mode: 'mock', layoutNode: '1184:124104' }, blocks: [
     section('requirements', '需求分析', [paragraph('goal', `根据${product}的商品信息，为${campaigns}制作推广视频。内容需要清晰呈现商品、使用场景和大促利益点。`)]),
     section('product', '商品信息', [
       section('references', '商品参考图', [{ id: 'product-reference', type: 'subjects', items: [{ context: 'product', role: '商品' }] }], 2),
@@ -15,6 +21,9 @@ export function createDocumentFixture(template, context) {
       { label: '表达方式', text: '围绕商品展示、使用场景和促销信息组织内容。未确认的商品功效与优惠不作确定性表达。' },
     ] }]),
   ] };
+}
+
+function createStoryboardFixture(product, campaigns) {
   return { version: 1, source: { mode: 'mock', layoutNode: '1184:124104' }, blocks: [
     section('concept', '创意概述', [paragraph('concept-copy', `围绕“下班后的一碗热粉”呈现${product}。开场用成品近景建立食欲，随后展示备餐与试吃，结尾回到商品及${campaigns}推广信息。`)]),
     section('storyboard', '分镜脚本', [
@@ -32,3 +41,4 @@ export function createDocumentFixture(template, context) {
     ]),
   ] };
 }
+import { createRequirementsDocument } from './requirements.js?v=20260907f';

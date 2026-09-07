@@ -50,10 +50,10 @@ test('campaign choice personalizes subsequent copy', () => {
 });
 test('artifact edit commits content and previous version without mutating the original', () => {
   const artifact = artifactContent(scenarioArtifacts[0]);
-  const draft = structuredClone(artifact); draft.content.blocks[0].children[0].text = '更新后的方案';
+  const draft = structuredClone(artifact); draft.content.blocks[0].text = '更新后的方案';
   const updated = commitArtifactEdit(artifact, draft, 'now');
-  assert.equal(updated.content.blocks[0].children[0].text, '更新后的方案');
-  assert.notEqual(artifact.content.blocks[0].children[0].text, updated.content.blocks[0].children[0].text);
+  assert.equal(updated.content.blocks[0].text, '更新后的方案');
+  assert.notEqual(artifact.content.blocks[0].text, updated.content.blocks[0].text);
   assert.deepEqual(updated.history[0].content, artifact.content);
   assert.equal(updated.revision, 2);
 });

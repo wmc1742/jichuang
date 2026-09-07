@@ -2,6 +2,17 @@
 
 ## Source of truth
 
+### Mandatory calibration gate
+
+- User clarification: the request to delete the old file-tree icon did not authorize deleting maximize. Never interpret a browser-generated accessible name, selector, or our own component label as the user's business instruction. Use the user's actual comment, target appearance, and Figma annotations together; ask if their meaning remains ambiguous.
+- For genuine unresolved decisions, use the grilling clarification skill: first retrieve facts from Figma and the code, then ask only the remaining decision questions and wait. Do not ask the user to restate rules that can already be read from the supplied design. Do not implement an unresolved branch before confirmation.
+
+- Never infer, approximate from memory, or invent a product style, layout, control, copy, or state. This also prohibits silently inheriting an old component's presentation.
+- Before each UI edit, inspect the exact current Figma state and annotations. Record the source node, intended state, relevant design properties, and the existing-code differences. A section inventory is not evidence that each state was checked.
+- Code reuse requires verified agreement with that exact state. A shared component, familiar name, or passing functional test is not proof of visual agreement.
+- If the required source cannot be read, is ambiguous, or conflicts with a later user instruction, stop the affected edit and report the specific uncertainty. Do not fill the gap with a guessed design.
+- After editing, inspect the rendered result in the same state against the source. Unchecked states must be labeled unverified; do not claim the component or page has been fully restored.
+
 - Product intent: `agent2-ia-document/即创Agent-2.0信息架构升级方案.md`.
 - Figma file: `Alh06MJP5p6N9cZkuHD5I4`.
 - Sections: task `1176:118745`, conversation `1176:118746`, artifacts `1176:118747`.
@@ -37,7 +48,7 @@
 - Composer: `1047:44266`, especially annotations `1047:44296` and `1047:44300`. Skill tag is white/purple, inside the input; product/material slots open the respective selector. Closing the skill removes the preset query.
 - Structured document detail: `1184:123591`, content subtree `1184:124104`. Top-level section gap 24, inner gap 16, heading 16, body 14/24; numbered subheadings, subject cards, two-column dialogue/visual tables.
 - Structured document edit: `1184:125465`; same block structure, editable fields and actor drill-down, apply commits revision.
-- Figma uses mixed example subjects in its document body. Luosifen demonstration copy is separately identified as Mock in `scenarios/documents.js`; it must reuse the extracted structure, not claim literal content parity.
+- Figma uses mixed example subjects in its document body. Luosifen demonstration copy is separately identified as Mock; it must reuse the extracted structure, not claim literal content parity. On September 7 the user clarified that the wet-wipe copy in `1466:16935` is structural placeholder content and authorized semantic replacement for luosifen. Requirements now follow `1466:17458`: introductory analysis, product references, product details (selling points/audience/campaign), and content preferences. `scenarios/requirements.js` owns this Mock copy; typed `reference-gallery` and `fact-cards` blocks own its presentation. Unverified composition, prices and discounts must remain qualified, not factual promises.
 - No mobile Figma frame has been calibrated in this change. Narrow-screen layouts preserve component ownership and source hierarchy; they are responsive adaptations, not claimed pixel-exact mobile designs.
 
 ## Release gate

@@ -1,7 +1,7 @@
-import { Icon, escapeHtml } from '../ui/primitives.js?v=20260906e';
-import { media } from '../data/assets.js?v=20260906e';
-import { skills, filteredSkills, skillCategories } from '../scenarios/skills.js?v=20260906e';
-export { skills } from '../scenarios/skills.js?v=20260906e';
+import { Icon, escapeHtml } from '../ui/primitives.js?v=20260907f';
+import { media } from '../data/assets.js?v=20260907f';
+import { skills, filteredSkills, skillCategories } from '../scenarios/skills.js?v=20260907f';
+export { skills } from '../scenarios/skills.js?v=20260907f';
 
 export function SkillChoices() {
   return `<div class="new-task-skill-track">${skills.map((skill) => `<div class="skill-choice"><button class="new-task-skill" data-action="choose-skill" data-skill="${skill.name}"><img src="${media.skillPreview}" alt=""><span>${skill.name}</span>${Icon('send')}</button><div class="skill-preview" data-source-node="1047:44021"><video muted loop playsinline preload="none" poster="${media.skillPreview}" ${skill.previewUrl ? `src="${escapeHtml(skill.previewUrl)}"` : ''}></video><div><b>${skill.name}</b><p>${skill.description}</p></div></div></div>`).join('')}</div>`;
@@ -32,7 +32,7 @@ export function TaskDialogs(state) {
   } else if (state.dialog === 'rename') {
     body = `<h2>重命名任务</h2><input data-task-name maxlength="80" aria-label="任务名称" value="${escapeHtml(state.projectTitle)}"><footer><button data-action="close-dialog">取消</button><button class="is-primary" data-action="apply-task-name">保存</button></footer>`;
   } else if (state.dialog === 'delete') {
-    body = `<h2>删除任务</h2><p>确认删除“${escapeHtml(state.projectTitle)}”及其会话和产物？</p><footer><button data-action="close-dialog">取消</button><button class="is-danger" data-action="confirm-delete-task">删除</button></footer>`;
+    body = `<h2>删除任务</h2><p>确认删除“${escapeHtml(state.actionTask?.projectTitle || state.projectTitle)}”及其会话和产物？</p><footer><button data-action="close-dialog">取消</button><button class="is-danger" data-action="confirm-delete-task">删除</button></footer>`;
   } else if (state.dialog === 'share') {
     body = `<h2>分享任务</h2><p>此链接包含当前任务的只读快照，收到链接的人可以查看会话和产物。不会包含后续修改。</p><textarea readonly aria-label="任务分享链接">${escapeHtml(state.shareUrl || '')}</textarea><footer><button data-action="close-dialog">关闭</button><button class="is-primary" data-action="copy-share">复制链接</button></footer>`;
   }

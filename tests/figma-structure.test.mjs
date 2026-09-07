@@ -60,8 +60,40 @@ test('crowded artifact tabs retain full titles and stable identity', () => {
   state.artifactWorkspace.activeTabId = 'd0';
   state.artifactWorkspace.activeView = ArtifactView.DETAIL;
   const html = ArtifactWorkbench(state);
-  assert.match(html, /artifact-tabs is-crowded/);
+  assert.match(html, /artifact-tabs has-files/);
   assert.equal((html.match(/data-action="activate-artifact-tab"/g) || []).length, 5);
   assert.match(html, /title="Document 4"/);
   assert.equal((html.match(/data-action="close-artifact-tab"/g) || []).length, 1);
+});
+
+test('empty workspace uses the source title and empty copy without invented filters or actions', () => {
+  const state = { artifacts: [], artifactWorkspace: createArtifactWorkspace({ open: true }) };
+  const html = ArtifactWorkbench(state);
+  assert.match(html, /data-source-node="1343:168417"/);
+  assert.match(html, /aria-current="page"/);
+  assert.match(html, /artifact-empty--workspace/);
+  assert.match(html, /暂时没有生成新的内容/);
+  assert.doesNotMatch(html, /生成的内容将在这里展示|artifact-type-filters/);
+  assert.match(html, /toggle-workbench-size/);
+});
+
+test('list overview uses typed group headings and labels its current mode', () => {
+  const state = videoState();
+  state.artifactWorkspace = createArtifactWorkspace({ open: true, rootMode: ArtifactView.LIST, activeView: ArtifactView.LIST });
+  const html = ArtifactWorkbench(state);
+  assert.match(html, /1347:223013/);
+  assert.match(html, /<h2>.*artifact-video\.svg.*<span>视频<\/span><\/h2>/);
+  assert.match(html, /aria-label="切换为分类模式"/);
+  assert.match(html, /artifact-view-switch\.svg/);
+  assert.match(html, /<span>列表模式<\/span>/);
+  assert.doesNotMatch(html, /artifact-overview__label|artifact-type-filters/);
+});
+
+test('category overview falls back to an available type without inventing empty categories', () => {
+  const state = videoState();
+  state.artifactWorkspace = createArtifactWorkspace({ open: true });
+  const html = ArtifactWorkbench(state);
+  assert.match(html, /artifact-media-tile--video/);
+  assert.match(html, /<span>分类模式<\/span>/);
+  assert.doesNotMatch(html, /当前任务还没有生成此类内容/);
 });

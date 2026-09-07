@@ -1,4 +1,4 @@
-import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260906e';
+import { Icon, IconButton, escapeHtml } from '../ui/primitives.js?v=20260907f';
 
 export function ProductHeader() {
   return `
@@ -15,20 +15,21 @@ export function ProductRail({ active = 'home' } = {}) {
     </nav>`;
 }
 
-export function TaskSidebar({ activeTask = 'existing', tasks = [], taskId, sidebarCollapsed = false, compactTaskRail = false, mobileTasksOpen = false } = {}) {
-  const isNewTask = activeTask === 'new';
+export function TaskSidebar({ activeTask = 'existing', tasks = [], taskId, sidebarCollapsed = false, compactTaskRail = false, mobileTasksOpen = false, taskMenu = null } = {}) {
+  const compact = (sidebarCollapsed || compactTaskRail) && !mobileTasksOpen;
   return `
-    <aside class="task-sidebar ${mobileTasksOpen ? 'mobile-tasks-open' : ''}">
+    <aside class="task-sidebar ${compact ? 'is-collapsed' : ''} ${mobileTasksOpen ? 'mobile-tasks-open' : ''}" data-source-node="${compact ? '1047:44058' : '1047:43915'}" aria-label="任务管理">
       <div class="task-sidebar__head">
-        <button class="brand-lockup ${sidebarCollapsed || compactTaskRail ? 'is-compact' : ''}" data-action="${sidebarCollapsed || compactTaskRail ? 'toggle-sidebar' : 'home'}" aria-label="${sidebarCollapsed || compactTaskRail ? '展开或收起任务管理' : '返回首页'}">${Icon('logoMark')} ${Icon('logoWord')}</button>
-        ${IconButton({ icon: 'collapse', label: '收起任务管理', action: 'toggle-sidebar', className: 'sidebar-collapse' })}
+        <button class="brand-lockup ${compact ? 'is-compact' : 'has-home-return'}" data-action="${compact ? 'toggle-sidebar' : 'home'}" aria-label="${compact ? '展开任务管理' : '返回首页'}" ${compact ? 'aria-expanded="false" title="展开任务管理" data-source-node="1047:44178"' : 'data-source-node="1466:16465"'}>${Icon('logoMark')} ${compact ? '' : `${Icon('logoWord')}<span class="brand-home-return" aria-hidden="true">${Icon('homeReturn')}<span>返回首页</span></span>`}</button>
+        ${compact ? '' : IconButton({ icon: 'taskSidebarToggle', label: '收起任务管理', action: 'toggle-sidebar', className: 'sidebar-collapse' })}
       </div>
-      <button class="new-task ${isNewTask ? 'is-active' : ''}" data-action="new-task" aria-label="新建项目">${Icon('newTask')}<span>新建项目</span></button>
+      <button class="new-task" data-action="new-task" aria-label="新建项目" title="新建项目">${Icon('newTask')}<span>新建项目</span></button>
+      ${compact ? `<button class="task-projects" data-action="toggle-sidebar" aria-label="项目" title="项目" aria-expanded="false" data-source-node="1047:44066">${Icon('taskProjects')}</button>` : ''}
       <section class="recent-tasks">
         <h2>最近</h2>
-        ${tasks.filter((task) => task.taskMode !== 'new').map((task) => `<button class="recent-task ${task.taskId === taskId ? 'is-active' : ''}" data-action="open-task" data-task="${escapeHtml(task.taskId)}" title="${escapeHtml(task.projectTitle)}">${escapeHtml(task.projectTitle)}</button>`).join('')}
+        ${tasks.filter((task) => task.taskMode !== 'new').map((task) => `<div class="recent-task-row ${activeTask !== 'new' && task.taskId === taskId ? 'is-active' : ''} ${taskMenu?.taskId === task.taskId ? 'is-menu-open' : ''}"><button class="recent-task" data-action="open-task" data-task="${escapeHtml(task.taskId)}" title="${escapeHtml(task.projectTitle)}" ${activeTask !== 'new' && task.taskId === taskId ? 'aria-current="page"' : ''}>${escapeHtml(task.projectTitle)}</button><button class="task-more" data-action="toggle-task-menu" data-task="${escapeHtml(task.taskId)}" aria-label="${escapeHtml(task.projectTitle)}的任务选项" aria-expanded="${taskMenu?.taskId === task.taskId}" title="任务选项">${Icon('taskMore')}</button></div>`).join('')}
       </section>
-    </aside>`;
+    </aside>${taskMenu && !compact ? `<div class="task-options-menu" role="menu" aria-label="任务选项" style="top:${Math.max(8, taskMenu.top)}px;left:${taskMenu.left}px" data-source-node="1047:43527">${[['share-task','分享任务'],['open-conversation-settings','设置'],['delete-task','删除']].map(([action,label]) => `<button role="menuitem" data-action="${action}" data-task="${escapeHtml(taskMenu.taskId)}">${label}</button>`).join('')}</div>` : ''}`;
 }
 
 export function ConversationHeader({ projectMenuOpen = false, title = '即创螺蛳粉', editorEnabled = false, workbenchOpen = false }) {
